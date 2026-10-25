@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -17,11 +18,12 @@ import (
 type Report struct {
 	Format string // the --format value, and the file name in the reports directory
 	Name   string
-	Use    string // what the output is for
-	Where  string // where it shows up
-	Wiring string // a CI job that publishes it
-	Open   bool   // show the output expanded
-	Output string
+	Use    string        // what the output is for
+	Where  string        // where it shows up
+	Wiring string        // a CI job that publishes it
+	Open   bool          // show the output expanded
+	Output string        // as cfgaudit printed it, with terminal colours for text and table
+	HTML   template.HTML // Output with the colours as spans
 }
 
 // SampleFile is one file of the sample repository the reports are for.
@@ -96,6 +98,7 @@ func loadReports(dir, version string) ([]SampleFile, []Report, error) {
 			return nil, nil, fmt.Errorf("%s: cfgaudit printed nothing for --format %s", dir, r.Format)
 		}
 		r.Output = out
+		r.HTML = ansiHTML(out)
 		r.Wiring = strings.ReplaceAll(r.Wiring, "{{VERSION}}", version)
 		reports = append(reports, r)
 	}

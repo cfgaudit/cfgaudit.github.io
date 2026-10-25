@@ -75,7 +75,7 @@
     <p>{{.Use}}</p>
     <p class="where"><strong>Shows up in:</strong> {{.Where}}</p>
     {{with .Wiring}}<details><summary>CI setup that publishes it</summary><pre><code>{{.}}</code></pre></details>{{end}}
-    <details{{if .Open}} open{{end}}><summary>Output</summary><pre class="output"><code>{{.Output}}</code></pre></details>
+    <details{{if .Open}} open{{end}}><summary>Output</summary><pre class="output"><code>{{.HTML}}</code></pre></details>
   </section>
   {{end}}
   <p class="source">All flags and the inputs of the GitHub Action and GitLab components are in the <a href="https://github.com/cfgaudit/cfgaudit#usage">README</a>.</p>
