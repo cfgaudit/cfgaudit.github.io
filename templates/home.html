@@ -48,7 +48,14 @@
 go install github.com/cfgaudit/cfgaudit/cmd/cfgaudit@v{{.Version}}
 docker run --rm -v "$PWD:/work" -w /work \
   ghcr.io/cfgaudit/cfgaudit:{{.Version}} .</code></pre>
-        <p>Binaries for Linux, macOS and Windows on <a href="https://github.com/cfgaudit/cfgaudit/releases/tag/v{{.Version}}">the release page</a>, with SLSA provenance; the image is signed with cosign.</p>
+        <p>The container image is signed with cosign and carries SLSA provenance.</p>
+      </div>
+      <div class="card">
+        <h3>Binary</h3>
+<pre><code>curl -sSLO \
+  https://github.com/cfgaudit/cfgaudit/releases/download/v{{.Version}}/cfgaudit_{{.Version}}_linux_amd64.tar.gz
+tar xzf cfgaudit_{{.Version}}_linux_amd64.tar.gz</code></pre>
+        <p>Archives for Linux, macOS and Windows on amd64 and arm64 on <a href="https://github.com/cfgaudit/cfgaudit/releases/tag/v{{.Version}}">the release page</a>, with <code>checksums.txt</code> and SLSA provenance. Check a download with <code>gh attestation verify</code> as shown in <a href="https://github.com/cfgaudit/cfgaudit#verifying-a-release">Verifying a release</a>.</p>
       </div>
       <div class="card">
         <h3>Claude Code plugin</h3>
