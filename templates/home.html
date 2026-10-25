@@ -26,6 +26,20 @@
     <p class="note">Every finding names the rule, the file and what to do instead. Each rule has a page with the risk, what is flagged and a safe alternative, for example <a href="/rules/CFG004/">CFG004</a> and <a href="/rules/CFG036/">CFG036</a>. The example above is the <a href="/reports/">sample repository</a> scanned by cfgaudit {{.Version}}.</p>
   </section>
 
+  <section class="wrap" id="agents">
+    <h2>Supported agents</h2>
+    <p class="note">cfgaudit is built around Claude Code and reads the configuration of other coding agents too. Each row links to what cfgaudit checks for that agent in the README of cfgaudit {{.Version}}.</p>
+    <table class="agents">
+      <thead><tr><th>Agent</th><th>What cfgaudit reads</th></tr></thead>
+      <tbody>
+      <tr><td><a href="https://github.com/cfgaudit/cfgaudit/blob/v{{.Version}}/README.md#what-cfgaudit-checks">Claude Code</a></td><td>Settings with permissions, env and hooks, MCP servers, <code>CLAUDE.md</code>, skills, commands, subagents and plugins</td></tr>
+      {{range .Agents}}<tr><td><a href="https://github.com/cfgaudit/cfgaudit/blob/v{{$.Version}}/README.md#{{.Anchor}}">{{.Name}}</a></td><td>{{.Reads}}</td></tr>
+      {{end}}
+      </tbody>
+    </table>
+    <p class="note">The instruction files of further agents are read as well, among them <code>AGENTS.md</code>, Cline's <code>.clinerules</code>, Zed's <code>.rules</code> and Amp's <code>AGENT.md</code>; the <a href="https://github.com/cfgaudit/cfgaudit/blob/v{{.Version}}/README.md#instruction-files--claudemd--other-agents">README</a> lists every path.</p>
+  </section>
+
   <section class="wrap" id="install">
     <h2>Install</h2>
     <div class="cards">

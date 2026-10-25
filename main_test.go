@@ -123,6 +123,9 @@ func TestBuild_Failures(t *testing.T) {
 		"documented rule missing": func(dir string) error {
 			return os.WriteFile(filepath.Join(dir, "rules.json"), []byte(`[{"id":"CFG001","severity":"error","owasp":"LLM03"}]`), 0o600)
 		},
+		"no agent sections": func(dir string) error {
+			return os.WriteFile(filepath.Join(dir, "src", "README.md"), []byte("# cfgaudit\n"), 0o600)
+		},
 		"unknown category": func(dir string) error {
 			return os.WriteFile(filepath.Join(dir, "rules.json"), []byte(`[{"id":"CFG001","severity":"error","owasp":"LLM03"},{"id":"CFG004","severity":"error","owasp":"LLM03"},{"id":"CFG036","severity":"error","owasp":"LLM02"},{"id":"CFG110","severity":"error","owasp":"LLM99"}]`), 0o600)
 		},
@@ -140,5 +143,36 @@ func TestBuild_Failures(t *testing.T) {
 				t.Errorf("build succeeded")
 			}
 		})
+	}
+}
+
+// #7: the home page lists the agent sections of the README at the release
+// tag, and the topic sections and anything after the section are left out.
+func TestBuild_Agents(t *testing.T) {
+	home := read(t, filepath.Join(buildFixture(t), "index.html"))
+	for _, want := range []string{
+		`README.md#cursor--github-copilot--hooks-permissions-and-repository-settings">Cursor &amp; GitHub Copilot</a></td><td>hooks, permissions and repository settings</td>`,
+		`README.md#openai-codex-cli--codexconfigtoml--agentsmd">OpenAI Codex CLI</a></td><td><code>.codex/config.toml</code> &amp; <code>AGENTS.md</code></td>`,
+		`blob/v1.18.1/README.md#what-cfgaudit-checks">Claude Code</a>`,
+	} {
+		if !strings.Contains(home, want) {
+			t.Errorf("home lacks %s", want)
+		}
+	}
+	for _, bad := range []string{"settingsjson--permissions", "Instruction files</a>", "Not an agent"} {
+		if strings.Contains(home, bad) {
+			t.Errorf("home lists %q as an agent", bad)
+		}
+	}
+}
+
+func TestGithubAnchor(t *testing.T) {
+	for in, want := range map[string]string{
+		"Devin Desktop (formerly Windsurf) — `.devin/`, with `.windsurf/` as the fallback": "devin-desktop-formerly-windsurf--devin-with-windsurf-as-the-fallback",
+		"qwen-code — `.qwen/` & `QWEN.md`":                                                 "qwen-code--qwen--qwenmd",
+	} {
+		if got := githubAnchor(in); got != want {
+			t.Errorf("githubAnchor(%q) = %q, want %q", in, got, want)
+		}
 	}
 }
