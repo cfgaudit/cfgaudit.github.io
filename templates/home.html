@@ -50,8 +50,14 @@ docker run --rm -v "$PWD:/work" -w /work \
   ghcr.io/cfgaudit/cfgaudit:{{.Version}} .</code></pre>
         <p>Binaries for Linux, macOS and Windows on <a href="https://github.com/cfgaudit/cfgaudit/releases/tag/v{{.Version}}">the release page</a>, with SLSA provenance; the image is signed with cosign.</p>
       </div>
+      <div class="card">
+        <h3>Claude Code plugin</h3>
+<pre><code>/plugin marketplace add cfgaudit/cfgaudit
+/plugin install cfgaudit@cfgaudit</code></pre>
+        <p>Adds <code>/cfgaudit:scan</code>, <code>/cfgaudit:explain &lt;RULE&gt;</code> and <code>/cfgaudit:init</code>, and hooks that scan after edits to <code>settings.json</code>, <code>CLAUDE.md</code>, <code>.mcp.json</code> or <code>.claude/</code> and when a session ends. Without a <code>cfgaudit</code> on your <code>PATH</code> it downloads the checksum-verified release binary. <a href="https://github.com/cfgaudit/cfgaudit#claude-code-plugin">Team rollout</a> in the README.</p>
+      </div>
     </div>
-    <p class="note">Also available as a Claude Code plugin. Output formats: text, table, JSON, SARIF and Code Climate, with <a href="/reports/">an example of each</a>. See the <a href="https://github.com/cfgaudit/cfgaudit#readme">README</a> for every option and every agent cfgaudit reads, and <a href="https://github.com/cfgaudit/cfgaudit#verifying-a-release">Verifying a release</a> to check a download before you run it.</p>
+    <p class="note">Output formats: text, table, JSON, SARIF and Code Climate, with <a href="/reports/">an example of each</a>. See the <a href="https://github.com/cfgaudit/cfgaudit#readme">README</a> for every option and every agent cfgaudit reads, and <a href="https://github.com/cfgaudit/cfgaudit#verifying-a-release">Verifying a release</a> to check a download before you run it.</p>
   </section>
 </main>
 {{template "foot" .}}{{end}}
