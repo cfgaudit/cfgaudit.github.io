@@ -73,6 +73,7 @@ type Page struct {
 	Covered     int          // LLM risks with at least one rule
 	Outside     int          // LLM risks a configuration file can't show
 	MCPCovered  int
+	Agents      []Agent // agent sections of the README at the release tag
 	Rule        *Rule
 	RuleCount   int
 }
@@ -109,6 +110,10 @@ func build(o Options) error {
 		return err
 	}
 	conv := converter{version: version}
+	agents, err := loadAgents(src, conv)
+	if err != nil {
+		return err
+	}
 
 	ids, err := ruleIDs(src)
 	if err != nil {
@@ -181,6 +186,7 @@ func build(o Options) error {
 		Sample:      shortLines(reports[0].Output),
 		Covered:     covered,
 		MCPCovered:  mcpCovered,
+		Agents:      agents,
 	}, "home.html"); err != nil {
 		return err
 	}
