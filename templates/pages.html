@@ -1,0 +1,90 @@
+{{define "overview.html"}}{{template "head" .}}
+<main class="wrap doc">
+  <h1>Rules</h1>
+  <p>All {{.RuleCount}} rules of cfgaudit {{.Version}}, grouped by their category in the <a href="/owasp/">OWASP Top 10 for LLM Applications 2026</a>. Severity <code>error</code> fails a scan, <code>warn</code> fails it only with <code>--strict</code>.</p>
+  <nav class="toc" aria-label="Categories">{{range .Risks}}{{if .Rules}}<a href="#{{lower .ID}}">{{.ID}} {{.Name}}</a>{{end}}{{end}}</nav>
+  {{range .Risks}}{{if .Rules}}
+  <h2 id="{{lower .ID}}">{{.ID}} {{.Name}}</h2>
+  <p>{{.Summary}}</p>
+  <table>
+    <thead><tr><th>Rule</th><th>Severity</th><th>What it reports</th></tr></thead>
+    <tbody>
+    {{range .Rules}}<tr><td><a href="/rules/{{.ID}}/">{{.ID}}</a></td><td><span class="sev">{{.Severity}}</span></td><td>{{.Description}}</td></tr>
+    {{end}}
+    </tbody>
+  </table>
+  {{end}}{{end}}
+</main>
+{{template "foot" .}}{{end}}
+
+{{define "rule.html"}}{{template "head" .}}
+<main class="wrap doc">
+  <p class="crumbs"><a href="/rules/">Rules</a> / {{.Rule.ID}}</p>
+  <h1><span class="rule-id">{{.Rule.ID}}</span> {{.Rule.TitleHTML}}</h1>
+  {{.Rule.Body}}
+  <p class="source">Documentation for cfgaudit {{.Version}}. <a href="https://github.com/cfgaudit/cfgaudit/blob/v{{.Version}}/docs/rules/{{.Rule.ID}}.md">Source of this page</a> · <a href="https://github.com/cfgaudit/cfgaudit/blob/v{{.Version}}/rules/{{lower .Rule.ID}}.go">Rule implementation</a></p>
+</main>
+{{template "foot" .}}{{end}}
+
+{{define "risklist"}}
+  <ol class="risks">
+  {{range .}}
+    <li class="risk{{if not .Rules}} risk-outside{{end}}" id="{{lower .ID}}">
+      <div class="risk-head">
+        <span class="risk-id">{{.ID}}</span>
+        <h3><a href="{{.URL}}">{{.Name}}</a></h3>
+        <span class="risk-count">{{if .Rules}}{{len .Rules}} rule{{if ne (len .Rules) 1}}s{{end}}{{else if .Outside}}not in a configuration file{{else}}no rule yet{{end}}</span>
+      </div>
+      {{if .Rules}}
+      <p>{{.Summary}}</p>
+      <ul class="risk-rules">
+        {{range .Rules}}<li><a href="/rules/{{.ID}}/"><span class="rid">{{.ID}}</span> {{.Description}}</a></li>
+        {{end}}
+      </ul>
+      {{else}}
+      <p>{{or .Outside .Summary}}</p>
+      {{end}}
+    </li>
+  {{end}}
+  </ol>
+{{end}}
+
+{{define "owasp.html"}}{{template "head" .}}
+<main class="wrap doc">
+  <h1>OWASP Top 10 for LLM Applications and MCP</h1>
+  <p>The <a href="https://genai.owasp.org/llm-top-10/">OWASP Top 10 for LLM Applications 2026</a> is cfgaudit's primary mapping: every rule belongs to one of its categories. cfgaudit's {{.RuleCount}} rules cover {{.Covered}} of the ten in the files that configure an agent.{{if .Outside}} The remaining {{.Outside}} are about training data, providers, model output and application code, which a configuration file doesn't contain.{{end}}</p>
+  {{template "risklist" .Risks}}
+  <h2 id="mcp">OWASP MCP Top 10</h2>
+  <p>Rules about MCP servers also name a category of the <a href="https://owasp.org/www-project-mcp-top-10/">OWASP MCP Top 10</a>. They cover {{.MCPCovered}} of its ten risks.</p>
+  {{template "risklist" .MCPRisks}}
+  <p class="source">Category names and links are from OWASP's lists. A rule names one LLM category and at most one MCP category.</p>
+</main>
+{{template "foot" .}}{{end}}
+
+{{define "reports.html"}}{{template "head" .}}
+<main class="wrap doc">
+  <h1>Example reports</h1>
+  <p>Everything below is real output of cfgaudit {{.Version}} for the same small repository, regenerated with every release. Its files:</p>
+  {{range .Inputs}}<p class="file-name"><code>{{.Path}}</code></p>
+  <pre><code>{{.Content}}</code></pre>
+  {{end}}
+  <nav class="toc" aria-label="Formats">{{range .Reports}}<a href="#{{.Format}}">{{.Name}}</a>{{end}}</nav>
+  {{range .Reports}}
+  <section class="report" id="{{.Format}}">
+    <h2>{{.Name}} <code>--format {{.Format}}</code></h2>
+    <p>{{.Use}}</p>
+    <p class="where"><strong>Shows up in:</strong> {{.Where}}</p>
+    {{with .Wiring}}<details><summary>CI setup that publishes it</summary><pre><code>{{.}}</code></pre></details>{{end}}
+    <details{{if .Open}} open{{end}}><summary>Output</summary><pre class="output"><code>{{.Output}}</code></pre></details>
+  </section>
+  {{end}}
+  <p class="source">All flags and the inputs of the GitHub Action and GitLab components are in the <a href="https://github.com/cfgaudit/cfgaudit#usage">README</a>.</p>
+</main>
+{{template "foot" .}}{{end}}
+
+{{define "404.html"}}{{template "head" .}}
+<main class="wrap doc">
+  <h1>Page not found</h1>
+  <p>Try the <a href="/rules/">rule list</a> or the <a href="/">home page</a>.</p>
+</main>
+{{template "foot" .}}{{end}}

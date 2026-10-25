@@ -1,0 +1,26 @@
+[
+  {
+    "id": "CFG001",
+    "severity": "error",
+    "owasp": "LLM03",
+    "description": "permissions.allow contains unrestricted Bash pattern"
+  },
+  {
+    "id": "CFG004",
+    "severity": "error/warn/info",
+    "owasp": "LLM03",
+    "description": "defaultMode set to bypassPermissions"
+  },
+  {
+    "id": "CFG036",
+    "severity": "error",
+    "owasp": "LLM02",
+    "description": "instruction file embeds shell commands"
+  },
+  {
+    "id": "CFG110",
+    "severity": "error",
+    "owasp": "LLM04",
+    "owasp_mcp": "MCP04"
+  }
+]
