@@ -1,0 +1,57 @@
+{{define "home.html"}}{{template "head" .}}
+<main>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <h1>Audit your AI agent's configuration before the agent runs it.</h1>
+        <p class="lede">cfgaudit is a static security auditor for the files that configure coding agents: Claude Code settings, hooks, skills and plugins, MCP servers, <code>CLAUDE.md</code> and <code>AGENTS.md</code>, and the configs of Cursor, Codex, Copilot, Gemini CLI and more. It catches unrestricted permissions, hooks that run on every session, unpinned MCP servers, leaked secrets and prompt injection in instruction files. It runs offline as a single binary and never starts an agent.</p>
+        <p class="actions">
+          <a class="button" href="#install">Install</a>
+          <a class="button ghost" href="/rules/">Browse the rules</a>
+        </p>
+        <div class="stats">
+          <span><strong>{{.RuleCount}}</strong>rules</span>
+          <a href="/owasp/"><strong>{{.Covered}}/10</strong>OWASP LLM risks</a>
+          <a href="/owasp/#mcp"><strong>{{.MCPCovered}}/10</strong>OWASP MCP risks</a>
+          <span><strong>0</strong>network calls</span>
+        </div>
+      </div>
+      <pre class="terminal" aria-label="cfgaudit output"><span class="prompt">$ <span class="cmd">cfgaudit .</span></span>
+{{range $i, $l := .Sample}}<span class="line" style="--i: {{$i}}">{{$l}}</span>
+{{end}}</pre>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <p class="note">Every finding names the rule, the file and what to do instead. Each rule has a page with the risk, what is flagged and a safe alternative, for example <a href="/rules/CFG004/">CFG004</a> and <a href="/rules/CFG036/">CFG036</a>. The example above is the <a href="/reports/">sample repository</a> scanned by cfgaudit {{.Version}}.</p>
+  </section>
+
+  <section class="wrap" id="install">
+    <h2>Install</h2>
+    <div class="cards">
+      <div class="card">
+        <h3>GitHub Action</h3>
+<pre><code>- uses: cfgaudit/cfgaudit@v{{.Version}}
+  with:
+    path: .</code></pre>
+        <p>Runs the published container image. With <code>format: sarif</code> the findings go to <a href="/reports/#sarif">GitHub Code Scanning</a>.</p>
+      </div>
+      <div class="card">
+        <h3>GitLab CI/CD component</h3>
+<pre><code>include:
+  - component: gitlab.com/cfgaudit/cfgaudit/cfgaudit@v{{.Version}}</code></pre>
+        <p>A second component reports findings in the merge request's <a href="/reports/#codeclimate">Code Quality widget</a>.</p>
+      </div>
+      <div class="card">
+        <h3>Homebrew, Go or Docker</h3>
+<pre><code>brew install cfgaudit/tap/cfgaudit
+go install github.com/cfgaudit/cfgaudit/cmd/cfgaudit@v{{.Version}}
+docker run --rm -v "$PWD:/work" -w /work \
+  ghcr.io/cfgaudit/cfgaudit:{{.Version}} .</code></pre>
+        <p>Binaries for Linux, macOS and Windows on <a href="https://github.com/cfgaudit/cfgaudit/releases/tag/v{{.Version}}">the release page</a>, with SLSA provenance; the image is signed with cosign.</p>
+      </div>
+    </div>
+    <p class="note">Also available as a Claude Code plugin. Output formats: text, table, JSON, SARIF and Code Climate, with <a href="/reports/">an example of each</a>. See the <a href="https://github.com/cfgaudit/cfgaudit#readme">README</a> for every option and every agent cfgaudit reads, and <a href="https://github.com/cfgaudit/cfgaudit#verifying-a-release">Verifying a release</a> to check a download before you run it.</p>
+  </section>
+</main>
+{{template "foot" .}}{{end}}

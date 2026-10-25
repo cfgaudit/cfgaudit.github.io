@@ -1,0 +1,3 @@
+.claude/settings.json [error] CFG001: permissions.allow contains "Bash(*)" — grants unrestricted shell access; scope to specific commands
+
+cfgaudit 1.18.1 — 1 findings

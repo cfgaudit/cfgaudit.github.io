@@ -1,0 +1,41 @@
+{{define "head"}}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Title}}</title>
+{{with .Description}}<meta name="description" content="{{.}}">
+<meta property="og:description" content="{{.}}">{{end}}
+<meta property="og:title" content="{{.Title}}">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://cfgaudit.github.io{{.Path}}">
+<link rel="canonical" href="https://cfgaudit.github.io{{.Path}}">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="/favicon-64.png" type="image/png" sizes="64x64">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap top-inner">
+    <a class="brand" href="/" aria-label="cfgaudit home"><img class="brand-mark" src="/logo.png" alt="" width="36" height="40"><span><span class="cfg">cfg</span><span class="audit">audit</span></span></a>
+    <nav aria-label="Main">
+      <a href="/rules/"{{if eq .Path "/rules/"}} aria-current="page"{{end}}>Rules</a>
+      <a href="/owasp/"{{if eq .Path "/owasp/"}} aria-current="page"{{end}}>OWASP</a>
+      <a href="/reports/"{{if eq .Path "/reports/"}} aria-current="page"{{end}}>Reports</a>
+      <a href="https://github.com/cfgaudit/cfgaudit">GitHub</a>
+    </nav>
+  </div>
+</header>
+{{end}}
+
+{{define "foot"}}
+<footer class="bottom">
+  <div class="wrap">
+    <p>cfgaudit {{.Version}} · {{.RuleCount}} rules · <a href="https://github.com/cfgaudit/cfgaudit/blob/main/LICENSE">Apache-2.0</a> · <a href="https://github.com/cfgaudit/cfgaudit/blob/main/SECURITY.md">Security policy</a> · <a href="https://github.com/cfgaudit/cfgaudit.github.io">Site source</a></p>
+  </div>
+</footer>
+</body>
+</html>
+{{end}}
