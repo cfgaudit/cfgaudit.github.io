@@ -83,6 +83,7 @@ func TestBuild_HomeOverviewOWASP(t *testing.T) {
 		"<strong>1/10</strong>OWASP MCP risks",
 		"cfgaudit/cfgaudit@v1.18.1",
 		"ghcr.io/cfgaudit/cfgaudit:1.18.1",
+		"/plugin install cfgaudit@cfgaudit",
 	} {
 		if !strings.Contains(home, want) {
 			t.Errorf("home lacks %s", want)
