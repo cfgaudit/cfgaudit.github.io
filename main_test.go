@@ -34,7 +34,7 @@ func read(t *testing.T, path string) string {
 
 func TestBuild_Pages(t *testing.T) {
 	out := buildFixture(t)
-	for _, p := range []string{"index.html", "404.html", "owasp/index.html", "reports/index.html", "rules/index.html", "rules/CFG001/index.html", "rules/CFG110/index.html", "style.css", "favicon.ico", "favicon-32.png", "favicon-64.png", "apple-touch-icon.png", "logo.png", "sitemap.xml", "robots.txt"} {
+	for _, p := range []string{"index.html", "404.html", "owasp/index.html", "reports/index.html", "rules/index.html", "rules/CFG001/index.html", "rules/CFG110/index.html", "style.css", "favicon.ico", "favicon-32.png", "favicon-64.png", "apple-touch-icon.png", "logo.png", "screenshots/code-quality-mr.png", "sitemap.xml", "robots.txt"} {
 		if _, err := os.Stat(filepath.Join(out, p)); err != nil {
 			t.Errorf("missing %s", p)
 		}
@@ -102,7 +102,7 @@ func TestBuild_HomeOverviewOWASP(t *testing.T) {
 		}
 	}
 	reports := read(t, filepath.Join(out, "reports", "index.html"))
-	for _, want := range []string{"<code>.claude/settings.json</code>", "&lt;sarif&gt; &amp; output", "cfgaudit-code-quality@v1.18.1", `[<span class="ansi-red">error</span>] <span class="ansi-bold">CFG001</span>`} {
+	for _, want := range []string{"<code>.claude/settings.json</code>", "&lt;sarif&gt; &amp; output", "cfgaudit-code-quality@v1.18.1", `<img src="/screenshots/code-quality-mr.png"`, "https://gitlab.com/cfgaudit/examples/-/merge_requests/1", `[<span class="ansi-red">error</span>] <span class="ansi-bold">CFG001</span>`} {
 		if !strings.Contains(reports, want) {
 			t.Errorf("reports lack %s", want)
 		}

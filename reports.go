@@ -24,6 +24,14 @@ type Report struct {
 	Open   bool          // show the output expanded
 	Output string        // as cfgaudit printed it, with terminal colours for text and table
 	HTML   template.HTML // Output with the colours as spans
+	Shot   *Screenshot
+}
+
+// Screenshot shows where a report appears. It is taken by hand from a merge
+// request kept open for this, so it does not follow the release (#11).
+type Screenshot struct {
+	Src, Alt, Caption, Link string
+	Width, Height           int
 }
 
 // SampleFile is one file of the sample repository the reports are for.
@@ -54,6 +62,14 @@ var reportFormats = []Report{
 	{Format: "codeclimate", Name: "Code Climate",
 		Use:   "The Code Climate JSON that GitLab's Code Quality report reads.",
 		Where: "The merge request's Code Quality widget in GitLab.",
+		Shot: &Screenshot{
+			Src:     "/screenshots/code-quality-mr.png",
+			Alt:     "GitLab merge request Code Quality report: Code Quality scans found 7 new findings, five Critical (CFG001 Bash(*), CFG003 enableAllProjectMcpServers, CFG004 bypassPermissions, CFG029 a never-ask line in CLAUDE.md, CFG049 a cleartext MCP server) and two Minor (CFG010 an unpinned MCP package, CFG040 unrestricted WebFetch), each with its file and line",
+			Caption: "The Code Quality report of a merge request on GitLab.com (Free tier) that adds a risky agent configuration with seven findings.",
+			Link:    "https://gitlab.com/cfgaudit/examples/-/merge_requests/1",
+			Width:   1016,
+			Height:  742,
+		},
 		Wiring: `include:
   - component: gitlab.com/cfgaudit/cfgaudit/cfgaudit-code-quality@v{{VERSION}}
     inputs:
