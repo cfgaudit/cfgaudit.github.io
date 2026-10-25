@@ -179,3 +179,17 @@ pre.output { max-height: 520px; }
 .sev { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85em; white-space: nowrap; }
 .file-name { margin: 18px 0 -8px; }
 .risk h3 { font-size: 1.15rem; margin: 0; flex: 1 1 260px; }
+
+/* cfgaudit's terminal colours in the text and table output (#9). */
+.ansi-bold { font-weight: 700; }
+.ansi-red { color: #d1242f; }
+.ansi-yellow { color: #9a6700; }
+.ansi-cyan { color: #0a7ea4; }
+.terminal .ansi-red { color: #ff6b6b; }
+.terminal .ansi-yellow { color: #f5c542; }
+.terminal .ansi-cyan { color: #4fd1e8; }
+@media (prefers-color-scheme: dark) {
+  .ansi-red { color: #ff7b72; }
+  .ansi-yellow { color: #e3b341; }
+  .ansi-cyan { color: #56d4ea; }
+}

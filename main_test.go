@@ -77,7 +77,7 @@ func TestBuild_HomeOverviewOWASP(t *testing.T) {
 	home := read(t, filepath.Join(out, "index.html"))
 	for _, want := range []string{
 		// Cut at the first " — "; the summary line stays whole.
-		`<span class="line" style="--i: 0">.claude/settings.json [error] CFG001: permissions.allow contains &#34;Bash(*)&#34;</span>`,
+		`<span class="line" style="--i: 0">.claude/settings.json [<span class="ansi-red">error</span>] <span class="ansi-bold">CFG001</span>: permissions.allow contains &#34;Bash(*)&#34;</span>`,
 		"cfgaudit 1.18.1 — 1 findings",
 		"<strong>3/10</strong>OWASP LLM risks",
 		"<strong>1/10</strong>OWASP MCP risks",
@@ -102,7 +102,7 @@ func TestBuild_HomeOverviewOWASP(t *testing.T) {
 		}
 	}
 	reports := read(t, filepath.Join(out, "reports", "index.html"))
-	for _, want := range []string{"<code>.claude/settings.json</code>", "&lt;sarif&gt; &amp; output", "cfgaudit-code-quality@v1.18.1"} {
+	for _, want := range []string{"<code>.claude/settings.json</code>", "&lt;sarif&gt; &amp; output", "cfgaudit-code-quality@v1.18.1", `[<span class="ansi-red">error</span>] <span class="ansi-bold">CFG001</span>`} {
 		if !strings.Contains(reports, want) {
 			t.Errorf("reports lack %s", want)
 		}

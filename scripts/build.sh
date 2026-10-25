@@ -24,7 +24,10 @@ mkdir -p "$work/reports"
 cp -R sample "$work/reports/input"
 for format in text table sarif codeclimate json; do
   rc=0
-  (cd sample && "$work/cfgaudit-bin" --claude-version 2.1.310 --format "$format" .) > "$work/reports/$format.txt" 2> "$work/stderr.txt" || rc=$?
+  # text and table carry cfgaudit's terminal colours, which the site renders.
+  force=
+  case $format in text | table) force=1 ;; esac
+  (cd sample && FORCE_COLOR=$force "$work/cfgaudit-bin" --claude-version 2.1.310 --format "$format" .) > "$work/reports/$format.txt" 2> "$work/stderr.txt" || rc=$?
   [ "$rc" -eq 1 ] || { echo "cfgaudit --format $format exited $rc on the sample" >&2; cat "$work/reports/$format.txt" "$work/stderr.txt" >&2; exit 1; }
 done
 

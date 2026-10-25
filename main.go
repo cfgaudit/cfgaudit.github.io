@@ -65,7 +65,7 @@ type Page struct {
 	Description string
 	Path        string // site path, "/" or "/rules/CFG001/"
 	Version     string
-	Sample      []string // lines of the home page example
+	Sample      []template.HTML // lines of the home page example, with colour
 	Reports     []Report
 	Inputs      []SampleFile // the files the reports are for
 	Risks       []Risk       // OWASP LLM Top 10
@@ -183,7 +183,7 @@ func build(o Options) error {
 		Title:       "cfgaudit: static security auditor for AI-agent configuration",
 		Description: fmt.Sprintf("cfgaudit finds risky permissions, hooks, MCP servers and instructions in Claude Code, Cursor, Codex, Copilot, Gemini CLI and other agent configuration before the agent runs: %d rules, offline, one binary.", len(ids)),
 		Path:        "/",
-		Sample:      shortLines(reports[0].Output),
+		Sample:      ansiLines(shortLines(reports[0].Output)),
 		Covered:     covered,
 		MCPCovered:  mcpCovered,
 		Agents:      agents,
@@ -273,20 +273,28 @@ func build(o Options) error {
 func shortLines(out string) []string {
 	lines := strings.Split(out, "\n")
 	for i, l := range lines {
-		if strings.HasPrefix(l, "cfgaudit ") {
+		if strings.HasPrefix(visible(l), "cfgaudit ") {
 			continue
 		}
 		if head, _, ok := strings.Cut(l, " \u2014 "); ok {
 			l = head
 		}
-		if r := []rune(l); len(r) > 120 {
-			cut := string(r[:120])
+		// Colour codes sit in the severity and rule ID only, so the text after
+		// the last escape sequence is plain and is what gets cut.
+		head, tail := "", l
+		if locs := anyEscRe.FindAllStringIndex(l, -1); len(locs) > 0 {
+			end := locs[len(locs)-1][1]
+			head, tail = l[:end], l[end:]
+		}
+		budget := 120 - len([]rune(visible(head)))
+		if r := []rune(tail); budget > 0 && len(r) > budget {
+			cut := string(r[:budget])
 			if j := strings.LastIndex(cut, " "); j > 0 {
 				cut = cut[:j]
 			}
-			l = cut + " \u2026"
+			tail = cut + " \u2026"
 		}
-		lines[i] = l
+		lines[i] = head + tail
 	}
 	return lines
 }
