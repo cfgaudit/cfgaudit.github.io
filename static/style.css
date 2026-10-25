@@ -193,3 +193,8 @@ pre.output { max-height: 520px; }
   .ansi-yellow { color: #e3b341; }
   .ansi-cyan { color: #56d4ea; }
 }
+
+/* A screenshot of where a report shows up (#11). */
+.shot { margin: 16px 0; }
+.shot img { display: block; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px; background: #fff; }
+.shot figcaption { color: var(--muted); font-size: 0.9rem; margin-top: 6px; }
