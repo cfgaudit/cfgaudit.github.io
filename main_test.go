@@ -250,3 +250,18 @@ func TestLoadBench_RejectsOtherVersions(t *testing.T) {
 		t.Errorf("err = %v, want a format version error", err)
 	}
 }
+
+// #19: the header's navigation rules must not reach the .toc chips, which are
+// <nav> elements too; a bare "nav a:hover" turned their text white on a light
+// chip.
+func TestStyle_NavRulesScopedToHeader(t *testing.T) {
+	css, err := staticFS.ReadFile("static/style.css")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, line := range strings.Split(string(css), "\n") {
+		if strings.HasPrefix(strings.TrimSpace(line), "nav") || strings.Contains(line, ", nav ") {
+			t.Errorf("unscoped nav selector: %s", line)
+		}
+	}
+}

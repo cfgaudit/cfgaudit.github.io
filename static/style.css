@@ -70,9 +70,9 @@ pre {
 .brand-mark { width: 36px; height: 40px; }
 .brand .cfg { color: var(--on-ink); }
 .brand .audit { background: var(--gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
-nav { display: flex; gap: 22px; }
-nav a { color: var(--on-ink-muted); text-decoration: none; font-weight: 500; }
-nav a:hover, nav a[aria-current="page"] { color: var(--on-ink); box-shadow: 0 2px 0 var(--accent); }
+.top nav { display: flex; gap: 22px; }
+.top nav a { color: var(--on-ink-muted); text-decoration: none; font-weight: 500; }
+.top nav a:hover, .top nav a[aria-current="page"] { color: var(--on-ink); box-shadow: 0 2px 0 var(--accent); }
 
 .hero { background: var(--ink); color: var(--on-ink); padding: 56px 0 64px; }
 .hero h1 { font-size: clamp(2rem, 4.6vw, 3rem); line-height: 1.12; letter-spacing: -0.02em; margin: 0 0 18px; }
@@ -150,7 +150,7 @@ tbody tr:hover { background: var(--surface); }
 .bottom a { color: var(--on-ink); }
 
 @media (max-width: 480px) {
-  nav { gap: 14px; font-size: 0.95rem; }
+  .top nav { gap: 14px; font-size: 0.95rem; }
   .brand { font-size: 1.2rem; }
 }
 
