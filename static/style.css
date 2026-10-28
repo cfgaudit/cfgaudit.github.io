@@ -20,6 +20,9 @@
   --line: #e1e6eb;
   --link: #0058c4;
   --code-bg: #eef1f4;
+  /* Benchmark series: the logo blue, checked for contrast and lightness
+     against each surface with a palette validator. */
+  --series: #006ced;
   color-scheme: light dark;
 }
 
@@ -32,6 +35,7 @@
     --line: #2c3742;
     --link: #3ed6a0;
     --code-bg: #212b34;
+    --series: #3a92f5;
   }
 }
 
@@ -198,3 +202,26 @@ pre.output { max-height: 520px; }
 .shot { margin: 16px 0; }
 .shot img { display: block; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px; background: #fff; }
 .shot figcaption { color: var(--muted); font-size: 0.9rem; margin-top: 6px; }
+
+/* Benchmarks page: small multiples, one unit per chart, no script. */
+.bench h2 { margin-bottom: 12px; }
+.charts { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px 24px; }
+.charts figure { margin: 0; }
+.charts figcaption { font-size: 0.9rem; color: var(--muted); margin-bottom: 4px; }
+.chart { width: 100%; height: auto; display: block; overflow: visible; }
+.chart .grid { stroke: var(--line); stroke-width: 1; }
+.chart .ref { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 3; }
+.chart .tick { fill: var(--muted); font-size: 10px; text-anchor: end; }
+.chart .series { fill: none; stroke: var(--series); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chart .pt { fill: var(--series); stroke: var(--bg); stroke-width: 2; }
+.chart .hit { fill: transparent; }
+.chart a:hover .pt, .chart a:focus .pt { r: 5; }
+.chart .release line { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 4 3; }
+.chart .release text { fill: var(--muted); font-size: 9px; }
+.chart .cpu line { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 1 2; }
+.chart .cpu text { fill: var(--muted); font-size: 9px; font-style: italic; }
+.bench details { margin-top: 10px; }
+.bench summary { cursor: pointer; color: var(--muted); font-size: 0.93rem; }
+.legend { white-space: nowrap; }
+.key { display: inline-block; width: 18px; height: 0; vertical-align: middle; border-top: 1px dashed var(--muted); margin-right: 4px; }
+.key-cpu { border-top-style: dotted; }
