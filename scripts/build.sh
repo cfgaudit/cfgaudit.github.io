@@ -33,4 +33,18 @@ done
 
 "$work/cfgaudit-bin" list --format json > "$work/rules.json"
 
-go run . -src "$work/cfgaudit" -version "${tag#v}" -reports "$work/reports" -rules "$work/rules.json" -out _site
+# The benchmark history from the bench-data branch (cfgaudit/cfgaudit#1019)
+# and the releases to mark on its charts. Without the branch the site builds
+# without a benchmarks page.
+if gh api -H "Accept: application/vnd.github.raw" "repos/cfgaudit/cfgaudit/contents/bench.jsonl?ref=bench-data" > "$work/bench.jsonl" 2> "$work/bench.err"; then
+  gh api --paginate repos/cfgaudit/cfgaudit/tags --jq '.[] | {tag: .name, sha: .commit.sha}' | jq -s . > "$work/tags.json"
+  gh api --paginate repos/cfgaudit/cfgaudit/releases --jq '.[] | select(.draft | not) | {tag: .tag_name, date: .published_at, url: .html_url}' | jq -s . > "$work/published.json"
+  jq -n --slurpfile t "$work/tags.json" --slurpfile p "$work/published.json" \
+    '[$p[0][] as $r | ($t[0][] | select(.tag == $r.tag)) as $tag | $r + {sha: $tag.sha}]' > "$work/releases.json"
+else
+  grep -q "404" "$work/bench.err" || { cat "$work/bench.err" >&2; exit 1; }
+  echo "no bench-data branch yet; building without a benchmarks page"
+  rm -f "$work/bench.jsonl"
+fi
+
+go run . -src "$work/cfgaudit" -version "${tag#v}" -reports "$work/reports" -rules "$work/rules.json" -bench "$work/bench.jsonl" -releases "$work/releases.json" -out _site

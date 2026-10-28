@@ -176,3 +176,77 @@ func TestGithubAnchor(t *testing.T) {
 		}
 	}
 }
+
+// #17: the benchmarks page charts bench.jsonl from cfgaudit's bench-data
+// branch, without a script.
+func TestBuild_BenchmarksPage(t *testing.T) {
+	o := fixture(filepath.Join(t.TempDir(), "_site"))
+	o.Bench, o.Releases = "testdata/bench.jsonl", "testdata/releases.json"
+	if err := build(o); err != nil {
+		t.Fatal(err)
+	}
+	page := read(t, filepath.Join(o.Out, "benchmarks", "index.html"))
+	for _, want := range []string{
+		"<title>Benchmarks · cfgaudit</title>",
+		"4 commits from 2026-10-28 to 2026-11-03",
+		`<section class="bench" id="b-scan-repo">`,
+		`<section class="bench" id="b-init-rules">`,
+		"Allocations at package init",
+		// Each point links to its commit and names its value.
+		`<a href="https://github.com/cfgaudit/cfgaudit/commit/` + strings.Repeat("b", 40) + `"><title>bbbbbbb · 2026-10-29 · 13.5k (-82.9% vs previous)</title>`,
+		// v1.20.0's commit has no line, so it sits at the first line after it.
+		`<a href="https://github.com/cfgaudit/cfgaudit/releases/tag/v1.20.0"><text`,
+		"v1.20.0, released before this commit; its own commit has no measurement",
+		// The CPU changed between the second and third line.
+		"Runner CPU changed to AMD EPYC 9V74 80-Core Processor",
+		"0.95×",
+	} {
+		if !strings.Contains(page, want) {
+			t.Errorf("benchmarks page lacks %s", want)
+		}
+	}
+	// Scan_Repo comes before Init_Rules; v1.19.0 predates the data and has no marker.
+	if strings.Index(page, `id="b-scan-repo"`) > strings.Index(page, `id="b-init-rules"`) {
+		t.Error("whole scans should come first")
+	}
+	for _, bad := range []string{"<script", "releases/tag/v1.19.0", "ns/op</th>"} {
+		if strings.Contains(page, bad) {
+			t.Errorf("benchmarks page contains %q", bad)
+		}
+	}
+	// The ratio chart appears only where a ratio exists; both benchmarks have one.
+	if n := strings.Count(page, "<figcaption>Time relative to the latest release"); n != 2 {
+		t.Errorf("%d ratio charts, want 2", n)
+	}
+	if !strings.Contains(read(t, filepath.Join(o.Out, "index.html")), `<a href="/benchmarks/">Benchmarks</a>`) {
+		t.Error("the footer does not link the benchmarks page")
+	}
+	if !strings.Contains(read(t, filepath.Join(o.Out, "sitemap.xml")), "https://cfgaudit.github.io/benchmarks/") {
+		t.Error("the sitemap lacks the benchmarks page")
+	}
+}
+
+// Without data the site builds as before: no page and no link to it.
+func TestBuild_NoBenchData(t *testing.T) {
+	o := fixture(filepath.Join(t.TempDir(), "_site"))
+	o.Bench = filepath.Join(t.TempDir(), "missing.jsonl")
+	if err := build(o); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(filepath.Join(o.Out, "benchmarks")); !os.IsNotExist(err) {
+		t.Errorf("benchmarks page built without data: %v", err)
+	}
+	if strings.Contains(read(t, filepath.Join(o.Out, "index.html")), "/benchmarks/") {
+		t.Error("the footer links a page that does not exist")
+	}
+}
+
+func TestLoadBench_RejectsOtherVersions(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "bench.jsonl")
+	if err := os.WriteFile(path, []byte(`{"v":2,"sha":"`+strings.Repeat("a", 40)+`"}`+"\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := loadBench(path); err == nil || !strings.Contains(err.Error(), "format version 2") {
+		t.Errorf("err = %v, want a format version error", err)
+	}
+}

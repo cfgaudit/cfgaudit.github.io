@@ -76,6 +76,8 @@ type Page struct {
 	Agents      []Agent // agent sections of the README at the release tag
 	Rule        *Rule
 	RuleCount   int
+	Bench       *BenchPage
+	HasBench    bool // the footer links the benchmarks page
 }
 
 func main() {
@@ -83,9 +85,11 @@ func main() {
 	version := flag.String("version", "", "cfgaudit release the source tree is at, e.g. 1.18.1")
 	reports := flag.String("reports", "", "directory with cfgaudit's output on the sample, one <format>.txt per format, and the sample under input/")
 	rules := flag.String("rules", "", "output of cfgaudit list --format json from the same release")
+	bench := flag.String("bench", "", "bench.jsonl from cfgaudit's bench-data branch; without it there is no benchmarks page")
+	releases := flag.String("releases", "", "JSON list of cfgaudit releases (tag, sha, date, url) for the benchmark charts")
 	out := flag.String("out", "_site", "output directory")
 	flag.Parse()
-	if err := build(Options{Src: *src, Version: *version, Reports: *reports, Rules: *rules, Out: *out}); err != nil {
+	if err := build(Options{Src: *src, Version: *version, Reports: *reports, Rules: *rules, Bench: *bench, Releases: *releases, Out: *out}); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
 	}
@@ -94,6 +98,7 @@ func main() {
 // Options are the generator's inputs.
 type Options struct {
 	Src, Version, Reports, Rules, Out string
+	Bench, Releases                   string // optional
 }
 
 func build(o Options) error {
@@ -151,13 +156,22 @@ func build(o Options) error {
 	if err != nil {
 		return err
 	}
+	benchLines, err := loadBench(o.Bench)
+	if err != nil {
+		return err
+	}
+	releases, err := loadReleases(o.Releases)
+	if err != nil {
+		return err
+	}
+	bench := benchPage(benchLines, releases)
 	if err := os.RemoveAll(out); err != nil {
 		return err
 	}
 
 	var urls []string
 	write := func(p Page, name string) error {
-		p.Version, p.RuleCount = version, len(ids)
+		p.Version, p.RuleCount, p.HasBench = version, len(ids), bench != nil
 		dir := out
 		if name != "404.html" {
 			dir = filepath.Join(out, filepath.FromSlash(strings.Trim(p.Path, "/")))
@@ -250,6 +264,17 @@ func build(o Options) error {
 			Path:        "/rules/" + id + "/",
 			Rule:        r,
 		}, "rule.html"); err != nil {
+			return err
+		}
+	}
+
+	if bench != nil {
+		if err := write(Page{
+			Title:       "Benchmarks · cfgaudit",
+			Description: "How much cfgaudit allocates per scan and how its speed compares with the latest release, for every commit on main.",
+			Path:        "/benchmarks/",
+			Bench:       bench,
+		}, "benchmarks.html"); err != nil {
 			return err
 		}
 	}
