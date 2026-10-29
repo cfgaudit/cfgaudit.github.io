@@ -225,3 +225,14 @@ pre.output { max-height: 520px; }
 .legend { white-space: nowrap; }
 .key { display: inline-block; width: 18px; height: 0; vertical-align: middle; border-top: 1px dashed var(--muted); margin-right: 4px; }
 .key-cpu { border-top-style: dotted; }
+
+/* Progress page: release step charts and the rules-per-agent bars. */
+.chart-wide { max-width: 760px; }
+.chart .direct { fill: var(--text); font-size: 11px; font-weight: 600; text-anchor: end; }
+.bars { list-style: none; padding: 0; margin: 16px 0; max-width: 760px; }
+.bars li { display: grid; grid-template-columns: minmax(120px, 15rem) 1fr 3rem; align-items: center; gap: 10px; padding: 3px 0; }
+.bar-name { font-size: 0.93rem; }
+.bar { display: block; height: 14px; }
+.bar span { display: block; height: 100%; background: var(--series); border-radius: 0 4px 4px 0; }
+.bar-value { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 0.93rem; }
+@media (max-width: 480px) { .bars li { grid-template-columns: 8rem 1fr 2.5rem; } }

@@ -4,7 +4,7 @@ Source of <https://cfgaudit.github.io>, the website and rule reference for [cfga
 
 The rule pages are generated from `docs/rules/CFGxxx.md` in the cfgaudit repository, at the latest release tag, so the site always describes the version people can install. The rule overview and the OWASP page sort the rules from that release's `cfgaudit list --format json` into the OWASP Top 10 for LLM Applications 2026 and the OWASP MCP Top 10. The example on the home page and the example reports are the output of that release's binary on the small repository in [`sample/`](sample), in every format.
 
-The benchmarks page charts `bench.jsonl` from the `bench-data` branch of the cfgaudit repository, which the Benchmark history workflow there extends on every push to `main`. The charts are inline SVG drawn at build time, one unit per chart, with the releases marked. Without that branch the site builds without the page.
+The progress page charts how cfgaudit grows from release to release. The build fetches the rule count and the README of every release tag through the GitHub API (two calls per tag), counts the agents each README covers, takes the rules per agent from the latest release's `cfgaudit list --format json` (the `agents` field, cfgaudit#1036), and adds the benchmark history from `bench.jsonl` on the `bench-data` branch. The charts are inline SVG drawn at build time, one measure per chart, with no script. `/benchmarks/`, the page's old address, redirects to its performance section.
 
 ## Building
 

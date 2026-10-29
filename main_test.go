@@ -4,6 +4,7 @@
 package main
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -177,66 +178,110 @@ func TestGithubAnchor(t *testing.T) {
 	}
 }
 
-// #17: the benchmarks page charts bench.jsonl from cfgaudit's bench-data
-// branch, without a script.
-func TestBuild_BenchmarksPage(t *testing.T) {
+// #17, #21: the progress page charts the release history, the rules per
+// agent and bench.jsonl from cfgaudit's bench-data branch, without a script.
+func TestBuild_ProgressPage(t *testing.T) {
 	o := fixture(filepath.Join(t.TempDir(), "_site"))
-	o.Bench, o.Releases = "testdata/bench.jsonl", "testdata/releases.json"
+	o.Bench, o.Releases, o.History = "testdata/bench.jsonl", "testdata/releases.json", "testdata/history"
+	o.Rules = withAgents(t, map[string][]string{"CFG001": {"claude-code"}, "CFG036": {"claude-code", "cursor"}})
 	if err := build(o); err != nil {
 		t.Fatal(err)
 	}
-	page := read(t, filepath.Join(o.Out, "benchmarks", "index.html"))
+	page := read(t, filepath.Join(o.Out, "progress", "index.html"))
 	for _, want := range []string{
-		"<title>Benchmarks · cfgaudit</title>",
-		"4 commits from 2026-10-28 to 2026-11-03",
+		"<title>Progress · cfgaudit</title>",
+		// Release charts, oldest first, each point linking to its release.
+		"The number of rules in each release, from 2026-05-25 to 2026-07-01.",
+		`<a href="https://github.com/cfgaudit/cfgaudit/releases/tag/v1.1.0"><title>v1.1.0 · 2026-06-01 · 48 rules (+33)</title>`,
+		`<title>v1.1.0 · 2026-06-01 · 4 agents (+3)</title>`,
+		`<title>v1.2.0 · 2026-07-01 · 7 agents (+3)</title>`,
+		// Rules per agent, longest bar first, from the agents field.
+		`<span class="bar-name">Claude Code</span><span class="bar"><span style="width: 100%"></span></span><span class="bar-value">2</span>`,
+		`<span class="bar-name">Cursor</span><span class="bar"><span style="width: 50%"></span></span><span class="bar-value">1</span>`,
+		// The benchmark section from #17.
+		`<section id="performance">`,
 		`<section class="bench" id="b-scan-repo">`,
-		`<section class="bench" id="b-init-rules">`,
-		"Allocations at package init",
-		// Each point links to its commit and names its value.
-		`<a href="https://github.com/cfgaudit/cfgaudit/commit/` + strings.Repeat("b", 40) + `"><title>bbbbbbb · 2026-10-29 · 13.5k (-82.9% vs previous)</title>`,
-		// v1.20.0's commit has no line, so it sits at the first line after it.
-		`<a href="https://github.com/cfgaudit/cfgaudit/releases/tag/v1.20.0"><text`,
-		"v1.20.0, released before this commit; its own commit has no measurement",
-		// The CPU changed between the second and third line.
 		"Runner CPU changed to AMD EPYC 9V74 80-Core Processor",
-		"0.95×",
 	} {
 		if !strings.Contains(page, want) {
-			t.Errorf("benchmarks page lacks %s", want)
+			t.Errorf("progress page lacks %s", want)
 		}
 	}
-	// Scan_Repo comes before Init_Rules; v1.19.0 predates the data and has no marker.
-	if strings.Index(page, `id="b-scan-repo"`) > strings.Index(page, `id="b-init-rules"`) {
-		t.Error("whole scans should come first")
-	}
-	for _, bad := range []string{"<script", "releases/tag/v1.19.0", "ns/op</th>"} {
+	for _, bad := range []string{"<script", "Kimi CLI"} {
 		if strings.Contains(page, bad) {
-			t.Errorf("benchmarks page contains %q", bad)
+			t.Errorf("progress page contains %q", bad)
 		}
 	}
-	// The ratio chart appears only where a ratio exists; both benchmarks have one.
-	if n := strings.Count(page, "<figcaption>Time relative to the latest release"); n != 2 {
-		t.Errorf("%d ratio charts, want 2", n)
+	if !strings.Contains(read(t, filepath.Join(o.Out, "index.html")), `<a href="/progress/">Progress</a>`) {
+		t.Error("the footer does not link the progress page")
 	}
-	if !strings.Contains(read(t, filepath.Join(o.Out, "index.html")), `<a href="/benchmarks/">Benchmarks</a>`) {
-		t.Error("the footer does not link the benchmarks page")
+	sitemap := read(t, filepath.Join(o.Out, "sitemap.xml"))
+	if !strings.Contains(sitemap, "https://cfgaudit.github.io/progress/") || strings.Contains(sitemap, "/benchmarks/") {
+		t.Errorf("sitemap:\n%s", sitemap)
 	}
-	if !strings.Contains(read(t, filepath.Join(o.Out, "sitemap.xml")), "https://cfgaudit.github.io/benchmarks/") {
-		t.Error("the sitemap lacks the benchmarks page")
+	// The old URL sends readers on and stays out of search results.
+	old := read(t, filepath.Join(o.Out, "benchmarks", "index.html"))
+	for _, want := range []string{`http-equiv="refresh" content="0; url=https://cfgaudit.github.io/progress/#performance"`, `<meta name="robots" content="noindex">`} {
+		if !strings.Contains(old, want) {
+			t.Errorf("redirect page lacks %s", want)
+		}
 	}
 }
 
-// Without data the site builds as before: no page and no link to it.
-func TestBuild_NoBenchData(t *testing.T) {
+// withAgents writes a copy of the rule list fixture with agents added.
+func withAgents(t *testing.T, agents map[string][]string) string {
+	t.Helper()
+	var listed []map[string]any
+	if err := json.Unmarshal([]byte(read(t, "testdata/rules.json")), &listed); err != nil {
+		t.Fatal(err)
+	}
+	for _, r := range listed {
+		if a, ok := agents[r["id"].(string)]; ok {
+			r["agents"] = a
+		}
+	}
+	data, err := json.Marshal(listed)
+	if err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(t.TempDir(), "rules.json")
+	if err := os.WriteFile(path, data, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	return path
+}
+
+// A README covers an agent through a path only that agent reads, or its name
+// where it has none. Table rows and passing mentions do not count.
+func TestReadmeAgents(t *testing.T) {
+	for _, c := range []struct {
+		tag  string
+		want string
+	}{
+		{"v1.0.0", "Claude Code"},
+		{"v1.1.0", "Claude Code,Cursor,VS Code,Cline"},
+		{"v1.2.0", "Claude Code,Cursor,Gemini CLI,goose,Crush,OpenHands,Roo Code"},
+	} {
+		got := strings.Join(readmeAgents(read(t, filepath.Join("testdata", "history", "readmes", c.tag+".md"))), ",")
+		if got != c.want {
+			t.Errorf("%s: %s, want %s", c.tag, got, c.want)
+		}
+	}
+}
+
+// Without any data the site builds as before: no page and no link to it.
+func TestBuild_NoProgressData(t *testing.T) {
 	o := fixture(filepath.Join(t.TempDir(), "_site"))
-	o.Bench = filepath.Join(t.TempDir(), "missing.jsonl")
+	o.Bench, o.History = filepath.Join(t.TempDir(), "missing.jsonl"), filepath.Join(t.TempDir(), "missing")
 	if err := build(o); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := os.Stat(filepath.Join(o.Out, "benchmarks")); !os.IsNotExist(err) {
-		t.Errorf("benchmarks page built without data: %v", err)
+	for _, dir := range []string{"progress", "benchmarks"} {
+		if _, err := os.Stat(filepath.Join(o.Out, dir)); !os.IsNotExist(err) {
+			t.Errorf("%s built without data: %v", dir, err)
+		}
 	}
-	if strings.Contains(read(t, filepath.Join(o.Out, "index.html")), "/benchmarks/") {
+	if strings.Contains(read(t, filepath.Join(o.Out, "index.html")), "/progress/") {
 		t.Error("the footer links a page that does not exist")
 	}
 }
