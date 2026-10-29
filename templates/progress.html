@@ -1,0 +1,66 @@
+{{define "progress.html"}}{{template "head" .}}
+<main class="wrap doc">
+  <h1>Progress</h1>
+  <p>How cfgaudit grows from release to release: the rules it ships, the agents it covers, how the rules spread over those agents, and what a scan costs. Every point links to its release or commit.</p>
+  <nav class="toc" aria-label="Sections">{{if .Progress.History}}<a href="#rules">Rules</a><a href="#agents">Agents</a>{{end}}{{if .Progress.Bars}}<a href="#rules-per-agent">Rules per agent</a>{{end}}{{if .Progress.Bench}}<a href="#performance">Performance</a>{{end}}</nav>
+
+  {{with .Progress}}{{if .History}}
+  <section id="rules">
+    <h2>Rules</h2>
+    <p>The number of rules in each release, from {{.FirstDate}} to {{.LatestDate}}.</p>
+    <figure>{{.RulesSVG}}</figure>
+  </section>
+  <section id="agents">
+    <h2>Agents covered</h2>
+    <p>The agents whose configuration each release reads. Counted from the README's <em>What cfgaudit checks</em> section at that tag: a path only that agent uses (<code>.cursor/</code>, <code>.gemini/</code>, …), or the agent's name where it has no directory of its own.</p>
+    <figure>{{.AgentsSVG}}</figure>
+    <details>
+      <summary>Data</summary>
+      <table>
+        <thead><tr><th>Release</th><th>Date</th><th>Rules</th><th>Agents</th></tr></thead>
+        <tbody>
+        {{range .History}}<tr><td><a href="{{.URL}}">{{.Tag}}</a></td><td>{{day .Date}}</td><td>{{.Rules}}</td><td>{{len .Agents}}{{if .Agents}}: {{join .Agents ", "}}{{end}}</td></tr>
+        {{end}}
+        </tbody>
+      </table>
+    </details>
+  </section>
+  {{end}}{{if .Bars}}
+  <section id="rules-per-agent">
+    <h2>Rules per agent</h2>
+    <p>How many of the {{.BarsTotal}} rules of cfgaudit {{$.Version}} read each agent's files. Rules over shared files count for every agent that reads them: the instruction-content rules cover every agent with instruction files, the MCP rules every agent whose MCP config cfgaudit parses. <code>cfgaudit list --agent &lt;name&gt;</code> lists them.</p>
+    <ol class="bars">
+      {{range .Bars}}<li><span class="bar-name">{{.Name}}</span><span class="bar"><span style="width: {{.Pct}}%"></span></span><span class="bar-value">{{.Rules}}</span></li>
+      {{end}}
+    </ol>
+  </section>
+  {{end}}{{with .Bench}}
+  <section id="performance">
+    <h2>Performance</h2>
+    <p>Every push to cfgaudit's <code>main</code> runs the benchmarks and records the medians of ten runs: {{.Lines}} commit{{if ne .Lines 1}}s{{end}} from {{.First}} to {{.Last}}. The input is a corpus generated from a fixed seed (neutral project documentation, skills, rules files, settings and MCP configs), not files from real repositories.</p>
+    <p>Allocations and bytes do not depend on the machine, so they are shown as they are. Time does, and the hosted runners change hardware, so it is shown only as the ratio to the latest release measured in the same job: below 1.0 is faster. <span class="legend"><span class="key key-release"></span> release</span> <span class="legend"><span class="key key-cpu"></span> the runner CPU changed</span>. Hover a point for its value.</p>
+    <nav class="toc" aria-label="Benchmarks">{{range .Benchmarks}}<a href="#{{.ID}}">{{.Name}}</a>{{end}}</nav>
+    {{range .Benchmarks}}
+    <section class="bench" id="{{.ID}}">
+      <h3>{{.Name}}</h3>
+      <div class="charts">
+        {{range .Charts}}<figure><figcaption>{{.Title}}</figcaption>{{.SVG}}</figure>
+        {{end}}
+      </div>
+      <details>
+        <summary>Data{{if eq (len .Rows) 30}} (latest 30 commits){{end}}</summary>
+        <table>
+          <thead><tr><th>Commit</th><th>Date</th>{{range .Units}}<th>{{.}}</th>{{end}}</tr></thead>
+          <tbody>
+          {{range .Rows}}<tr><td><a href="https://github.com/cfgaudit/cfgaudit/commit/{{.SHA}}"><code>{{.Short}}</code></a></td><td>{{.Date}}</td>{{range .Values}}<td>{{.}}</td>{{end}}</tr>
+          {{end}}
+          </tbody>
+        </table>
+      </details>
+    </section>
+    {{end}}
+    <p class="source">Data: <a href="https://github.com/cfgaudit/cfgaudit/blob/bench-data/bench.jsonl"><code>bench.jsonl</code></a> on the <code>bench-data</code> branch, written by the <a href="https://github.com/cfgaudit/cfgaudit/blob/main/.github/workflows/bench-history.yml">Benchmark history</a> workflow.</p>
+  </section>
+  {{end}}{{end}}
+</main>
+{{template "foot" .}}{{end}}

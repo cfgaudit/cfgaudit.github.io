@@ -28,11 +28,12 @@ type Risk struct {
 
 // ListedRule is one entry of cfgaudit list --format json.
 type ListedRule struct {
-	ID          string `json:"id"`
-	Severity    string `json:"severity"`
-	OWASP       string `json:"owasp"`
-	OWASPMCP    string `json:"owasp_mcp"`
-	Description string `json:"description"`
+	ID          string   `json:"id"`
+	Severity    string   `json:"severity"`
+	OWASP       string   `json:"owasp"`
+	OWASPMCP    string   `json:"owasp_mcp"`
+	Description string   `json:"description"`
+	Agents      []string `json:"agents"` // since cfgaudit#1036; empty before
 }
 
 // llmRisks are the OWASP Top 10 for LLM Applications 2026 in OWASP's order,

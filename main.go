@@ -76,8 +76,8 @@ type Page struct {
 	Agents      []Agent // agent sections of the README at the release tag
 	Rule        *Rule
 	RuleCount   int
-	Bench       *BenchPage
-	HasBench    bool // the footer links the benchmarks page
+	Progress    *ProgressPage
+	HasProgress bool // the footer links the progress page
 }
 
 func main() {
@@ -85,11 +85,12 @@ func main() {
 	version := flag.String("version", "", "cfgaudit release the source tree is at, e.g. 1.18.1")
 	reports := flag.String("reports", "", "directory with cfgaudit's output on the sample, one <format>.txt per format, and the sample under input/")
 	rules := flag.String("rules", "", "output of cfgaudit list --format json from the same release")
-	bench := flag.String("bench", "", "bench.jsonl from cfgaudit's bench-data branch; without it there is no benchmarks page")
+	bench := flag.String("bench", "", "bench.jsonl from cfgaudit's bench-data branch; without it the progress page has no performance section")
+	history := flag.String("history", "", "directory with history.json and readmes/<tag>.md, one per release; without it the progress page has no release charts")
 	releases := flag.String("releases", "", "JSON list of cfgaudit releases (tag, sha, date, url) for the benchmark charts")
 	out := flag.String("out", "_site", "output directory")
 	flag.Parse()
-	if err := build(Options{Src: *src, Version: *version, Reports: *reports, Rules: *rules, Bench: *bench, Releases: *releases, Out: *out}); err != nil {
+	if err := build(Options{Src: *src, Version: *version, Reports: *reports, Rules: *rules, Bench: *bench, Releases: *releases, History: *history, Out: *out}); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
 	}
@@ -98,7 +99,7 @@ func main() {
 // Options are the generator's inputs.
 type Options struct {
 	Src, Version, Reports, Rules, Out string
-	Bench, Releases                   string // optional
+	Bench, Releases, History          string // optional
 }
 
 func build(o Options) error {
@@ -110,7 +111,7 @@ func build(o Options) error {
 	if err != nil {
 		return err
 	}
-	tmpl, err := template.New("").Funcs(template.FuncMap{"lower": strings.ToLower}).ParseFS(templateFS, "templates/*.html")
+	tmpl, err := template.New("").Funcs(template.FuncMap{"lower": strings.ToLower, "day": day, "join": strings.Join}).ParseFS(templateFS, "templates/*.html")
 	if err != nil {
 		return err
 	}
@@ -164,14 +165,18 @@ func build(o Options) error {
 	if err != nil {
 		return err
 	}
-	bench := benchPage(benchLines, releases)
+	hist, err := loadHistory(o.History)
+	if err != nil {
+		return err
+	}
+	progress := progressPage(hist, listed, benchPage(benchLines, releases))
 	if err := os.RemoveAll(out); err != nil {
 		return err
 	}
 
 	var urls []string
 	write := func(p Page, name string) error {
-		p.Version, p.RuleCount, p.HasBench = version, len(ids), bench != nil
+		p.Version, p.RuleCount, p.HasProgress = version, len(ids), progress != nil
 		dir := out
 		if name != "404.html" {
 			dir = filepath.Join(out, filepath.FromSlash(strings.Trim(p.Path, "/")))
@@ -268,13 +273,18 @@ func build(o Options) error {
 		}
 	}
 
-	if bench != nil {
+	if progress != nil {
 		if err := write(Page{
-			Title:       "Benchmarks · cfgaudit",
-			Description: "How much cfgaudit allocates per scan and how its speed compares with the latest release, for every commit on main.",
-			Path:        "/benchmarks/",
-			Bench:       bench,
-		}, "benchmarks.html"); err != nil {
+			Title:       "Progress · cfgaudit",
+			Description: "How cfgaudit grows from release to release: its rules, the agents it covers, the rules per agent, and what a scan costs.",
+			Path:        "/progress/",
+			Progress:    progress,
+		}, "progress.html"); err != nil {
+			return err
+		}
+		// The page was /benchmarks/ before #21. GitHub Pages has no server
+		// redirects, so the old URL keeps a page that sends readers on.
+		if err := writeRedirect(out, "/benchmarks/", "/progress/#performance"); err != nil {
 			return err
 		}
 	}
@@ -445,6 +455,20 @@ func (f *linkFixer) fix(dest string) (string, error) {
 		return "/rules/" + m[1] + "/" + frag, nil
 	}
 	return repoURL + "/blob/v" + f.version + "/" + resolved + frag, nil
+}
+
+// writeRedirect writes a page at from that sends the reader to to. It is left
+// out of the sitemap.
+func writeRedirect(out, from, to string) error {
+	dir := filepath.Join(out, filepath.FromSlash(strings.Trim(from, "/")))
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
+	u := template.HTMLEscapeString(siteURL + to)
+	page := `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Moved</title>` +
+		`<meta http-equiv="refresh" content="0; url=` + u + `"><link rel="canonical" href="` + u + `">` +
+		`<meta name="robots" content="noindex"></head><body><p>This page moved to <a href="` + u + `">` + u + `</a>.</p></body></html>` + "\n"
+	return os.WriteFile(filepath.Join(dir, "index.html"), []byte(page), 0o644)
 }
 
 func copyStatic(out string) error {
