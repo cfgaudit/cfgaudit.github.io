@@ -57,12 +57,17 @@
         <p>A second component reports findings in the merge request's <a href="/reports/#codeclimate">Code Quality widget</a>.</p>
       </div>
       <div class="card">
-        <h3>Homebrew, Go or Docker</h3>
+        <h3>Package managers</h3>
 <pre><code>brew install cfgaudit/tap/cfgaudit
-go install github.com/cfgaudit/cfgaudit/cmd/cfgaudit@v{{.Version}}
-docker run --rm -v "$PWD:/work" -w /work \
+pipx install cfgaudit
+go install github.com/cfgaudit/cfgaudit/cmd/cfgaudit@v{{.Version}}</code></pre>
+        <p>Homebrew, <a href="https://pypi.org/project/cfgaudit/">PyPI</a> (also <code>uvx cfgaudit</code>) and the Go toolchain. The PyPI wheels carry the release binary after its checksum and provenance check, with PyPI attestations from the release workflow.</p>
+      </div>
+      <div class="card">
+        <h3>Docker</h3>
+<pre><code>docker run --rm -v "$PWD:/work" -w /work \
   ghcr.io/cfgaudit/cfgaudit:{{.Version}} .</code></pre>
-        <p>The container image is signed with cosign and carries SLSA provenance.</p>
+        <p>Signed with cosign, with SLSA provenance and an SBOM.</p>
       </div>
       <div class="card">
         <h3>Binary</h3>
