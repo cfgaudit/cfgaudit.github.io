@@ -57,6 +57,12 @@
         <p>A second component reports findings in the merge request's <a href="/reports/#codeclimate">Code Quality widget</a>.</p>
       </div>
       <div class="card">
+        <h3>Python: pipx or uv</h3>
+<pre><code>pipx install cfgaudit=={{.Version}}
+uvx cfgaudit@{{.Version}} .</code></pre>
+        <p>The <a href="https://pypi.org/project/cfgaudit/{{.Version}}/">wheels on PyPI</a> carry the release binary, no Python code, with PyPI attestations from the release workflow. Pin <code>cfgaudit=={{.Version}}</code> in a requirements file next to your other linters.</p>
+      </div>
+      <div class="card">
         <h3>Homebrew, Go or Docker</h3>
 <pre><code>brew install cfgaudit/tap/cfgaudit
 go install github.com/cfgaudit/cfgaudit/cmd/cfgaudit@v{{.Version}}
