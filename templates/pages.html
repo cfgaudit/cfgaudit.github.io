@@ -53,6 +53,7 @@
 <main class="wrap doc">
   <h1>OWASP Top 10 for LLM Applications and MCP</h1>
   <p>The <a href="https://genai.owasp.org/llm-top-10/">OWASP Top 10 for LLM Applications 2026</a> is cfgaudit's primary mapping: every rule belongs to one of its categories. cfgaudit's {{.RuleCount}} rules cover {{.Covered}} of the ten in the files that configure an agent.{{if .Outside}} The remaining {{.Outside}} are about training data, providers, model output and application code, which a configuration file doesn't contain.{{end}}</p>
+  <h2 id="llm">OWASP Top 10 for LLM Applications</h2>
   {{template "risklist" .Risks}}
   <h2 id="mcp">OWASP MCP Top 10</h2>
   <p>Rules about MCP servers also name a category of the <a href="https://owasp.org/www-project-mcp-top-10/">OWASP MCP Top 10</a>. They cover {{.MCPCovered}} of its ten risks.</p>
@@ -66,7 +67,7 @@
   <h1>Example reports</h1>
   <p>Everything below is real output of cfgaudit {{.Version}} for the same small repository, regenerated with every release. Its files:</p>
   {{range .Inputs}}<p class="file-name"><code>{{.Path}}</code></p>
-  <pre><code>{{.Content}}</code></pre>
+  <pre tabindex="0"><code>{{.Content}}</code></pre>
   {{end}}
   <nav class="toc" aria-label="Formats">{{range .Reports}}<a href="#{{.Format}}">{{.Name}}</a>{{end}}</nav>
   {{range .Reports}}
@@ -75,8 +76,8 @@
     <p>{{.Use}}</p>
     <p class="where"><strong>Shows up in:</strong> {{.Where}}</p>
     {{with .Shot}}<figure class="shot"><a href="{{.Link}}"><img src="{{.Src}}" alt="{{.Alt}}" width="{{.Width}}" height="{{.Height}}" loading="lazy"></a><figcaption>{{.Caption}} <a href="{{.Link}}">{{.LinkText}}</a>.</figcaption></figure>{{end}}
-    {{with .Wiring}}<details><summary>CI setup that publishes it</summary><pre><code>{{.}}</code></pre></details>{{end}}
-    <details{{if .Open}} open{{end}}><summary>Output</summary><pre class="output"><code>{{.HTML}}</code></pre></details>
+    {{with .Wiring}}<details><summary>CI setup that publishes it</summary><pre tabindex="0"><code>{{.}}</code></pre></details>{{end}}
+    <details{{if .Open}} open{{end}}><summary>Output</summary><pre class="output" tabindex="0"><code>{{.HTML}}</code></pre></details>
   </section>
   {{end}}
   <p class="source">All flags and the inputs of the GitHub Action and GitLab components are in the <a href="https://github.com/cfgaudit/cfgaudit#usage">README</a>.</p>

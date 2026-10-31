@@ -348,7 +348,7 @@ func renderChart(pts []point, lines []benchLine, markers []marker, unit, label s
 	y := func(v float64) float64 { return padT + plotH*(1-(v-lo)/(hi-lo)) }
 
 	var b strings.Builder
-	fmt.Fprintf(&b, `<svg class="chart" viewBox="0 0 %.0f %.0f" role="img" aria-label="%s">`, chartW, chartH, template.HTMLEscapeString(label))
+	fmt.Fprintf(&b, `<svg class="chart" viewBox="0 0 %.0f %.0f" role="group" aria-label="%s">`, chartW, chartH, template.HTMLEscapeString(label))
 	// Recessive grid: three lines with their values.
 	for _, t := range []float64{lo, (lo + hi) / 2, hi} {
 		fmt.Fprintf(&b, `<line class="grid" x1="%.1f" x2="%.1f" y1="%.1f" y2="%.1f"/>`, padL, padL+plotW, y(t), y(t))
