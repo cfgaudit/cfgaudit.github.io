@@ -86,6 +86,9 @@ func TestBuild_HomeOverviewOWASP(t *testing.T) {
 		"ghcr.io/cfgaudit/cfgaudit:1.18.1",
 		"/plugin install cfgaudit@cfgaudit",
 		"releases/download/v1.18.1/cfgaudit_1.18.1_linux_amd64.tar.gz",
+		"npx cfgaudit@1.18.1 .",
+		"npm install --save-dev --save-exact cfgaudit@1.18.1",
+		`<a href="https://www.npmjs.com/package/cfgaudit">npm</a>`,
 	} {
 		if !strings.Contains(home, want) {
 			t.Errorf("home lacks %s", want)
