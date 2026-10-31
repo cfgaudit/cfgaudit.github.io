@@ -60,8 +60,9 @@
         <h3>Package managers</h3>
 <pre><code>brew install cfgaudit/tap/cfgaudit
 pipx install cfgaudit
+npx cfgaudit@{{.Version}} .
 go install github.com/cfgaudit/cfgaudit/cmd/cfgaudit@v{{.Version}}</code></pre>
-        <p>Homebrew, <a href="https://pypi.org/project/cfgaudit/">PyPI</a> (also <code>uvx cfgaudit</code>) and the Go toolchain. The PyPI wheels carry the release binary after its checksum and provenance check, with PyPI attestations from the release workflow.</p>
+        <p>Homebrew, <a href="https://pypi.org/project/cfgaudit/">PyPI</a> (also <code>uvx cfgaudit</code>), <a href="https://www.npmjs.com/package/cfgaudit">npm</a> (pin it in <code>devDependencies</code> with <code>npm install --save-dev --save-exact cfgaudit@{{.Version}}</code>) and the Go toolchain. The PyPI wheels and the npm packages carry the release binary after its checksum and provenance check, with attestations from the release workflow.</p>
       </div>
       <div class="card">
         <h3>Docker</h3>
