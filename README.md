@@ -18,6 +18,19 @@ go test ./...
 
 The build fails on a rule doc whose first line isn't `# CFGxxx — Title` (or `# CFGxxx: Title`), on a relative link that leaves the cfgaudit repository, on any internal link without a page, and when the rule list and the rule docs disagree.
 
+## Checks
+
+`go test ./...` covers the generator, plus the SEO basics of every page (`seo_test.go`), the Content-Security-Policy and safe rendering of the rule docs (`safety_test.go`) and accessibility markup (`a11y_test.go`). The built site in `_site/` is checked in CI (`site-checks.yml`) with axe in light and dark mode, html-validate and stylelint. `lighthouse.yml` runs Lighthouse on `main`, weekly and by hand. The pinned tools live in `.github/site-checks/`. To run the checks locally:
+
+```sh
+./scripts/build.sh
+(cd .github/site-checks && npm ci --ignore-scripts)
+.github/site-checks/node_modules/.bin/html-validate --config .github/site-checks/htmlvalidate.json "_site/**/*.html"
+.github/site-checks/node_modules/.bin/stylelint --config .github/site-checks/stylelint.json static/style.css
+python3 -m http.server -d _site 8000 &
+CHROME_PATH=$(command -v google-chrome) node .github/site-checks/axe.mjs http://localhost:8000 .github/site-checks/pages.txt
+```
+
 ## Deployment
 
 `.github/workflows/deploy.yml` publishes to GitHub Pages on every push to `main`, once a day, on `workflow_dispatch` and on a `cfgaudit-release` repository dispatch.

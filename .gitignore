@@ -1,2 +1,3 @@
 _site/
 /cfgaudit.github.io
+.github/site-checks/node_modules/
