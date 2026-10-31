@@ -1,0 +1,7 @@
+/
+/reports/
+/rules/
+/rules/CFG001/
+/owasp/
+/progress/
+/404.html

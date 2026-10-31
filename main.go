@@ -289,7 +289,7 @@ func build(o Options) error {
 		}
 	}
 
-	if err := write(Page{Title: "Not found · cfgaudit", Path: "/404.html"}, "404.html"); err != nil {
+	if err := write(Page{Title: "Not found · cfgaudit", Description: "This page does not exist. cfgaudit audits AI agent configuration files; start from the rules or the reports.", Path: "/404.html"}, "404.html"); err != nil {
 		return err
 	}
 	if err := copyStatic(out); err != nil {
