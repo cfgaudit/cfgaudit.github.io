@@ -27,7 +27,7 @@ The build fails on a rule doc whose first line isn't `# CFGxxx — Title` (or `#
 (cd .github/site-checks && npm ci --ignore-scripts)
 .github/site-checks/node_modules/.bin/html-validate --config .github/site-checks/htmlvalidate.json "_site/**/*.html"
 .github/site-checks/node_modules/.bin/stylelint --config .github/site-checks/stylelint.json static/style.css
-python3 -m http.server -d _site 8000 &
+python3 -I .github/site-checks/serve.py _site 8000 &   # gzip, like GitHub Pages
 CHROME_PATH=$(command -v google-chrome) node .github/site-checks/axe.mjs http://localhost:8000 .github/site-checks/pages.txt
 ```
 
