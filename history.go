@@ -264,7 +264,7 @@ func renderStepChart(hist []HistPoint, value func(HistPoint) int, noun, label st
 	y := func(v float64) float64 { return pt + ph*(1-v/top) }
 
 	var b strings.Builder
-	fmt.Fprintf(&b, `<svg class="chart chart-wide" viewBox="0 0 %.0f %.0f" role="img" aria-label="%s">`, w, h, template.HTMLEscapeString(label))
+	fmt.Fprintf(&b, `<svg class="chart chart-wide" viewBox="0 0 %.0f %.0f" role="group" aria-label="%s">`, w, h, template.HTMLEscapeString(label))
 	for t := 0.0; t <= top+step/2; t += step {
 		fmt.Fprintf(&b, `<line class="grid" x1="%.1f" x2="%.1f" y1="%.1f" y2="%.1f"/><text class="tick" x="%.1f" y="%.1f">%.0f</text>`, pl, pl+pw, y(t), y(t), pl-6, y(t)+3.5, t)
 	}

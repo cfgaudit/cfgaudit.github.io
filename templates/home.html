@@ -16,7 +16,7 @@
           <span><strong>0</strong>network calls</span>
         </div>
       </div>
-      <pre class="terminal" aria-label="cfgaudit output"><span class="prompt">$ <span class="cmd">cfgaudit .</span></span>
+      <pre class="terminal" tabindex="0"><span class="prompt">$ <span class="cmd">cfgaudit .</span></span>
 {{range $i, $l := .Sample}}<span class="line" style="--i: {{$i}}">{{$l}}</span>
 {{end}}</pre>
     </div>
@@ -45,20 +45,20 @@
     <div class="cards">
       <div class="card">
         <h3>GitHub Action</h3>
-<pre><code>- uses: cfgaudit/cfgaudit@v{{.Version}}
+<pre tabindex="0"><code>- uses: cfgaudit/cfgaudit@v{{.Version}}
   with:
     path: .</code></pre>
         <p>Runs the published container image. With <code>format: sarif</code> the findings go to <a href="/reports/#sarif">GitHub Code Scanning</a>.</p>
       </div>
       <div class="card">
         <h3>GitLab CI/CD component</h3>
-<pre><code>include:
+<pre tabindex="0"><code>include:
   - component: gitlab.com/cfgaudit/cfgaudit/cfgaudit@v{{.Version}}</code></pre>
         <p>A second component reports findings in the merge request's <a href="/reports/#codeclimate">Code Quality widget</a>.</p>
       </div>
       <div class="card">
         <h3>Package managers</h3>
-<pre><code>brew install cfgaudit/tap/cfgaudit
+<pre tabindex="0"><code>brew install cfgaudit/tap/cfgaudit
 pipx install cfgaudit
 npx cfgaudit@{{.Version}} .
 go install github.com/cfgaudit/cfgaudit/cmd/cfgaudit@v{{.Version}}</code></pre>
@@ -66,20 +66,20 @@ go install github.com/cfgaudit/cfgaudit/cmd/cfgaudit@v{{.Version}}</code></pre>
       </div>
       <div class="card">
         <h3>Docker</h3>
-<pre><code>docker run --rm -v "$PWD:/work" -w /work \
+<pre tabindex="0"><code>docker run --rm -v "$PWD:/work" -w /work \
   ghcr.io/cfgaudit/cfgaudit:{{.Version}} .</code></pre>
         <p>Signed with cosign, with SLSA provenance and an SBOM.</p>
       </div>
       <div class="card">
         <h3>Binary</h3>
-<pre><code>curl -sSLO \
+<pre tabindex="0"><code>curl -sSLO \
   https://github.com/cfgaudit/cfgaudit/releases/download/v{{.Version}}/cfgaudit_{{.Version}}_linux_amd64.tar.gz
 tar xzf cfgaudit_{{.Version}}_linux_amd64.tar.gz</code></pre>
         <p>Archives for Linux, macOS and Windows on amd64 and arm64 on <a href="https://github.com/cfgaudit/cfgaudit/releases/tag/v{{.Version}}">the release page</a>, with <code>checksums.txt</code> and SLSA provenance. Check a download with <code>gh attestation verify</code> as shown in <a href="https://github.com/cfgaudit/cfgaudit#verifying-a-release">Verifying a release</a>.</p>
       </div>
       <div class="card">
         <h3>Claude Code plugin</h3>
-<pre><code>/plugin marketplace add cfgaudit/cfgaudit
+<pre tabindex="0"><code>/plugin marketplace add cfgaudit/cfgaudit
 /plugin install cfgaudit@cfgaudit</code></pre>
         <p>Adds <code>/cfgaudit:scan</code>, <code>/cfgaudit:explain &lt;RULE&gt;</code> and <code>/cfgaudit:init</code>, and hooks that scan after edits to <code>settings.json</code>, <code>CLAUDE.md</code>, <code>.mcp.json</code> or <code>.claude/</code> and when a session ends. Without a <code>cfgaudit</code> on your <code>PATH</code> it downloads the checksum-verified release binary. <a href="https://github.com/cfgaudit/cfgaudit#claude-code-plugin">Team rollout</a> in the README.</p>
       </div>

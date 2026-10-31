@@ -62,6 +62,7 @@ pre {
   overflow-x: auto;
   line-height: 1.5;
 }
+pre:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
 
 /* Header and hero share the ink of the logo. */
 .top { background: var(--ink); color: var(--on-ink); border-bottom: 3px solid; border-image: var(--gradient) 1; }
@@ -187,7 +188,7 @@ pre.output { max-height: 520px; }
 /* cfgaudit's terminal colours in the text and table output (#9). */
 .ansi-bold { font-weight: 700; }
 .ansi-red { color: #d1242f; }
-.ansi-yellow { color: #9a6700; }
+.ansi-yellow { color: #8f6000; } /* 4.8:1 on --code-bg (#28) */
 .ansi-cyan { color: #0a7ea4; }
 .terminal .ansi-red { color: #ff6b6b; }
 .terminal .ansi-yellow { color: #f5c542; }
@@ -215,7 +216,7 @@ pre.output { max-height: 520px; }
 .chart .series { fill: none; stroke: var(--series); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
 .chart .pt { fill: var(--series); stroke: var(--bg); stroke-width: 2; }
 .chart .hit { fill: transparent; }
-.chart a:hover .pt, .chart a:focus .pt { r: 5; }
+.chart a:hover .pt, .chart a:focus .pt { r: 5px; }
 .chart .release line { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 4 3; }
 .chart .release text { fill: var(--muted); font-size: 9px; }
 .chart .cpu line { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 1 2; }
