@@ -457,6 +457,9 @@ func (f *linkFixer) fix(dest string) (string, error) {
 	return repoURL + "/blob/v" + f.version + "/" + resolved + frag, nil
 }
 
+// cspMeta is the policy layout.html sets, for the pages built without it.
+const cspMeta = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">`
+
 // writeRedirect writes a page at from that sends the reader to to. It is left
 // out of the sitemap.
 func writeRedirect(out, from, to string) error {
@@ -465,7 +468,7 @@ func writeRedirect(out, from, to string) error {
 		return err
 	}
 	u := template.HTMLEscapeString(siteURL + to)
-	page := `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Moved</title>` +
+	page := `<!doctype html><html lang="en"><head><meta charset="utf-8">` + cspMeta + `<title>Moved</title>` +
 		`<meta http-equiv="refresh" content="0; url=` + u + `"><link rel="canonical" href="` + u + `">` +
 		`<meta name="robots" content="noindex"></head><body><p>This page moved to <a href="` + u + `">` + u + `</a>.</p></body></html>` + "\n"
 	return os.WriteFile(filepath.Join(dir, "index.html"), []byte(page), 0o644)

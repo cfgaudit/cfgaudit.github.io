@@ -3,6 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+{{/* GitHub Pages cannot set headers, so the policy is a meta tag (#27). The
+site runs no script and loads everything from itself. 'unsafe-inline' styles:
+the home page's per-line animation index (style="--i: N") and the progress
+bars (style="width: N%"). connect-src 'self': Lighthouse fetches robots.txt from
+inside the page. frame-ancestors has no effect in a meta tag. */}}
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
 <title>{{.Title}}</title>
 {{with .Description}}<meta name="description" content="{{.}}">
 <meta property="og:description" content="{{.}}">{{end}}
