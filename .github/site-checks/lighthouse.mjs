@@ -5,9 +5,10 @@
 // thresholds (#29). Usage: node lighthouse.mjs report.json...
 import { readFileSync } from "node:fs";
 
-// Performance is 85, not 90, until /progress/ is smaller: it scores 90 on
-// mobile, which runner noise would turn into a failure (#34).
-const minimum = { accessibility: 100, seo: 100, "best-practices": 100, performance: 85 };
+// Measured against serve.py, which compresses like GitHub Pages; served
+// uncompressed, /progress/ (441 KB of HTML, about 30 KB gzipped) scored 90 on
+// mobile (#34).
+const minimum = { accessibility: 100, seo: 100, "best-practices": 100, performance: 90 };
 
 let failed = false;
 for (const file of process.argv.slice(2)) {

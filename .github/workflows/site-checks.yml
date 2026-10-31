@@ -57,5 +57,6 @@ jobs:
       # The runner's Chrome; puppeteer-core downloads no browser.
       - name: Accessibility
         run: |
-          python3 -m http.server -d _site 8000 > /dev/null 2>&1 &
+          # Compressed like GitHub Pages serves it (#34).
+          python3 -I .github/site-checks/serve.py _site 8000 &
           CHROME_PATH=$(command -v google-chrome) node .github/site-checks/axe.mjs http://localhost:8000 .github/site-checks/pages.txt

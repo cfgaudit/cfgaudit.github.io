@@ -5,7 +5,8 @@ name: Lighthouse
 
 # Lighthouse on the built site (#29). Not on pull requests: the performance
 # score depends on the runner. Accessibility, SEO and best practices must stay
-# at 100, performance at 85 or more for now (#34, lighthouse.mjs).
+# at 100, performance at 90 or more (lighthouse.mjs). The site is served
+# gzip-compressed, as GitHub Pages does (serve.py, #34).
 
 on:
   push:
@@ -54,7 +55,8 @@ jobs:
         env:
           PRESET: ${{ matrix.preset }}
         run: |
-          python3 -m http.server -d _site 8000 > /dev/null 2>&1 &
+          # Compressed like GitHub Pages serves it (#34).
+          python3 -I .github/site-checks/serve.py _site 8000 &
           preset=()
           if [ "$PRESET" = desktop ]; then preset=(--preset=desktop); fi
           mkdir -p "$RUNNER_TEMP/lighthouse"
