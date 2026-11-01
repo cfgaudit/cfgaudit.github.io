@@ -170,6 +170,54 @@ func TestBuild_Agents(t *testing.T) {
 	}
 }
 
+// #37: once the cfgaudit README is split (cfgaudit#1138), the agent sections
+// are read from docs/rules/README.md, one level below its "What cfgaudit
+// checks" title, and linked there. The README's short section of the same
+// name is not read, and a fenced "# comment" does not end the section.
+func TestBuild_AgentsFromRuleIndex(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.CopyFS(dir, os.DirFS("testdata")); err != nil {
+		t.Fatal(err)
+	}
+	index := "# What cfgaudit checks\n\n## `settings.json` — permissions\n\n```yaml\n# not a heading\n```\n\n" +
+		"## Gemini CLI — `.gemini/settings.json`\n\n### Nested — not an agent\n\n## Instruction files — `CLAUDE.md` & other agents\n"
+	if err := os.WriteFile(filepath.Join(dir, "src", "docs", "rules", "README.md"), []byte(index), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "src", "README.md"), []byte("# cfgaudit\n\n## What cfgaudit checks\n\n### Stale — not read\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	o := fixture(filepath.Join(dir, "_site"))
+	o.Src = filepath.Join(dir, "src")
+	if err := build(o); err != nil {
+		t.Fatal(err)
+	}
+	home := read(t, filepath.Join(o.Out, "index.html"))
+	for _, want := range []string{
+		`blob/v1.18.1/docs/rules/README.md#gemini-cli--geminisettingsjson">Gemini CLI</a></td><td><code>.gemini/settings.json</code></td>`,
+		`blob/v1.18.1/docs/rules/README.md#what-cfgaudit-checks">Claude Code</a>`,
+		`blob/v1.18.1/docs/rules/README.md#instruction-files--claudemd--other-agents">What cfgaudit checks</a>`,
+	} {
+		if !strings.Contains(home, want) {
+			t.Errorf("home lacks %s", want)
+		}
+	}
+	for _, bad := range []string{"Stale", "Nested", "blob/v1.18.1/README.md#"} {
+		if strings.Contains(home, bad) {
+			t.Errorf("home contains %q", bad)
+		}
+	}
+
+	// A rule index without agent sections fails the build rather than
+	// falling back to the README.
+	if err := os.WriteFile(filepath.Join(dir, "src", "docs", "rules", "README.md"), []byte("# Rules\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := build(o); err == nil || !strings.Contains(err.Error(), "docs/rules/README.md: no agent sections") {
+		t.Errorf("build: %v", err)
+	}
+}
+
 func TestGithubAnchor(t *testing.T) {
 	for in, want := range map[string]string{
 		"Devin Desktop (formerly Windsurf) — `.devin/`, with `.windsurf/` as the fallback": "devin-desktop-formerly-windsurf--devin-with-windsurf-as-the-fallback",
@@ -264,6 +312,7 @@ func TestReadmeAgents(t *testing.T) {
 		{"v1.0.0", "Claude Code"},
 		{"v1.1.0", "Claude Code,Cursor,VS Code,Cline"},
 		{"v1.2.0", "Claude Code,Cursor,Gemini CLI,goose,Crush,OpenHands,Roo Code"},
+		{"v2.0.0", "Claude Code,Gemini CLI,qwen-code,Kimi CLI"},
 	} {
 		got := strings.Join(readmeAgents(read(t, filepath.Join("testdata", "history", "readmes", c.tag+".md"))), ",")
 		if got != c.want {
