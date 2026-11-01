@@ -73,7 +73,8 @@ type Page struct {
 	Covered     int          // LLM risks with at least one rule
 	Outside     int          // LLM risks a configuration file can't show
 	MCPCovered  int
-	Agents      []Agent // agent sections of the README at the release tag
+	Agents      []Agent // agent sections at the release tag
+	AgentsFile  string  // the file they are in: docs/rules/README.md or README.md
 	Rule        *Rule
 	RuleCount   int
 	Progress    *ProgressPage
@@ -116,7 +117,7 @@ func build(o Options) error {
 		return err
 	}
 	conv := converter{version: version}
-	agents, err := loadAgents(src, conv)
+	agents, agentsFile, err := loadAgents(src, conv)
 	if err != nil {
 		return err
 	}
@@ -206,6 +207,7 @@ func build(o Options) error {
 		Covered:     covered,
 		MCPCovered:  mcpCovered,
 		Agents:      agents,
+		AgentsFile:  agentsFile,
 	}, "home.html"); err != nil {
 		return err
 	}

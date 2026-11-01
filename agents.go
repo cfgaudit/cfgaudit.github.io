@@ -9,17 +9,16 @@ import (
 	"html/template"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"unicode"
 )
 
 // Agent is one row of the home page's agent list: an agent section under
-// "What cfgaudit checks" in the README at the release tag.
+// "What cfgaudit checks" at the release tag.
 type Agent struct {
 	Name   template.HTML // the heading before " — "
 	Reads  template.HTML // what the heading names after " — "
-	Anchor string        // the README section's GitHub anchor
+	Anchor string        // the section's GitHub anchor in AgentsFile
 }
 
 // readmeTopics are the "What cfgaudit checks" sections that describe a
@@ -32,45 +31,113 @@ var readmeTopics = map[string]bool{
 	"Agent-skills lockfile":   true,
 }
 
-var headingRe = regexp.MustCompile(`^### (.+)$`)
+// agentsFiles are the files that hold "What cfgaudit checks", newest layout
+// first: the rule index since the README was split (cfgaudit#1138), the
+// README before it (#37).
+var agentsFiles = []string{"docs/rules/README.md", "README.md"}
 
-// loadAgents reads the agent sections from README.md in the source tree, so a
-// section added in a release appears on the site with it.
-func loadAgents(src string, conv converter) ([]Agent, error) {
-	data, err := os.ReadFile(filepath.Join(src, "README.md")) //nolint:gosec // src comes from the build script
-	if err != nil {
-		return nil, err
-	}
-	in := false
-	var agents []Agent
-	for _, line := range strings.Split(string(data), "\n") {
+// checksSection returns the lines of md's "What cfgaudit checks" section,
+// without its heading, and the heading's level. The section ends at the next
+// heading of the same level or above; ok is false when md has no such heading.
+// Lines inside a fenced code block are never headings: a YAML example's
+// "# comment" must not end the section.
+func checksSection(md string) (lines []string, level int, ok bool) {
+	var fence fenceTracker
+	for _, line := range strings.Split(md, "\n") {
+		var l int
+		var text string
+		if !fence.inside(line) {
+			l, text = headingLevel(line)
+		}
 		switch {
-		case strings.HasPrefix(line, "## "):
-			in = strings.TrimSpace(line) == "## What cfgaudit checks"
-			continue
-		case !in:
+		case !ok && l > 0 && text == "What cfgaudit checks":
+			level, ok = l, true
+		case ok && l > 0 && l <= level:
+			return lines, level, true
+		case ok:
+			lines = append(lines, line)
+		}
+	}
+	return lines, level, ok
+}
+
+// fenceTracker follows ``` and ~~~ fences line by line.
+type fenceTracker struct{ open string }
+
+// inside reports whether line is part of a fenced code block, fence lines
+// included.
+func (f *fenceTracker) inside(line string) bool {
+	t := strings.TrimSpace(line)
+	switch {
+	case f.open != "":
+		if strings.HasPrefix(t, f.open) && strings.TrimLeft(t, f.open[:1]) == "" {
+			f.open = ""
+		}
+		return true
+	case strings.HasPrefix(t, "```"), strings.HasPrefix(t, "~~~"):
+		f.open = t[:3]
+		return true
+	}
+	return false
+}
+
+// headingLevel returns the level and text of an ATX heading line, or 0.
+func headingLevel(line string) (int, string) {
+	line = strings.TrimSpace(line)
+	n := len(line) - len(strings.TrimLeft(line, "#"))
+	if n == 0 || n > 6 || len(line) == n || line[n] != ' ' {
+		return 0, ""
+	}
+	return n, strings.TrimSpace(line[n:])
+}
+
+// loadAgents reads the agent sections from the first of agentsFiles in the
+// source tree, so a section added in a release appears on the site with it.
+// It returns the file, for the links to the sections.
+func loadAgents(src string, conv converter) ([]Agent, string, error) {
+	for _, file := range agentsFiles {
+		data, err := os.ReadFile(filepath.Join(src, filepath.FromSlash(file))) //nolint:gosec // src comes from the build script
+		if errors.Is(err, os.ErrNotExist) {
 			continue
 		}
-		m := headingRe.FindStringSubmatch(strings.TrimSpace(line))
-		if m == nil {
+		if err != nil {
+			return nil, "", err
+		}
+		agents, err := parseAgents(file, string(data), conv)
+		return agents, file, err
+	}
+	return nil, "", fmt.Errorf("none of %s in %s", strings.Join(agentsFiles, ", "), src)
+}
+
+// parseAgents returns the sections one level below "What cfgaudit checks".
+func parseAgents(file, md string, conv converter) ([]Agent, error) {
+	lines, level, _ := checksSection(md)
+	var agents []Agent
+	var fence fenceTracker
+	for _, line := range lines {
+		if fence.inside(line) {
 			continue
 		}
-		name, reads, _ := strings.Cut(m[1], " — ")
+		l, heading := headingLevel(line)
+		if l != level+1 {
+			continue
+		}
+		name, reads, _ := strings.Cut(heading, " — ")
 		if readmeTopics[name] {
 			continue
 		}
-		n, err := conv.inline("README.md", name)
+		n, err := conv.inline(file, name)
 		if err != nil {
 			return nil, err
 		}
-		r, err := conv.inline("README.md", reads)
+		r, err := conv.inline(file, reads)
 		if err != nil {
 			return nil, err
 		}
-		agents = append(agents, Agent{Name: n, Reads: r, Anchor: githubAnchor(m[1])})
+		agents = append(agents, Agent{Name: n, Reads: r, Anchor: githubAnchor(heading)})
 	}
 	if len(agents) == 0 {
-		return nil, errors.New("README.md: no agent sections under \"## What cfgaudit checks\"")
+		return nil, fmt.Errorf("%s: no agent sections under \"What cfgaudit checks\"", file)
 	}
 	return agents, nil
 }

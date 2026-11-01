@@ -23,7 +23,9 @@ import (
 
 // historyEntry is one release as scripts/build.sh records it in history.json:
 // the tag, when it was published, its release page, and the number of rule
-// docs in its tree. The README at that tag sits beside it as readmes/<tag>.md.
+// docs in its tree. The file with "What cfgaudit checks" at that tag sits
+// beside it as readmes/<tag>.md: docs/rules/README.md, or the README before
+// cfgaudit#1138.
 type historyEntry struct {
 	Tag   string `json:"tag"`
 	Date  string `json:"date"`
@@ -102,16 +104,14 @@ var compiledSignals = func() [][]*regexp.Regexp {
 	return out
 }()
 
-// readmeAgents returns the agents a README covers, by the signals above,
-// read from its "What cfgaudit checks" section (the whole README when an
-// older one has no such section).
+// readmeAgents returns the agents a release covers, by the signals above,
+// read from its "What cfgaudit checks" section (the whole file when an older
+// README has no such section). The file is the release's README, or its
+// docs/rules/README.md once it has one.
 func readmeAgents(readme string) []string {
 	sec := readme
-	if i := strings.Index(readme, "\n## What cfgaudit checks"); i >= 0 {
-		sec = readme[i+1:]
-		if j := strings.Index(sec[3:], "\n## "); j >= 0 {
-			sec = sec[:j+3]
-		}
+	if lines, _, ok := checksSection(readme); ok {
+		sec = strings.Join(lines, "\n")
 	}
 	var body, headings strings.Builder
 	for _, l := range strings.Split(sec, "\n") {

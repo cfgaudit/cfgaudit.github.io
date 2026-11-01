@@ -40,14 +40,19 @@ gh api --paginate repos/cfgaudit/cfgaudit/releases --jq '.[] | select(.draft | n
 jq -n --slurpfile t "$work/tags.json" --slurpfile p "$work/published.json" \
   '[$p[0][] as $r | ($t[0][] | select(.tag == $r.tag)) as $tag | $r + {sha: $tag.sha}]' > "$work/releases.json"
 
-# Per release: the number of rule docs in its tree and its README, from
-# which the generator counts the agents it covers (#21). A tag's tree never
-# changes, so two API calls per release.
+# Per release: the number of rule docs in its tree and the file with "What
+# cfgaudit checks", from which the generator counts the agents it covers
+# (#21): docs/rules/README.md since the README was split (cfgaudit#1138), the
+# README before it (#37). A tag's tree never changes, so two or three API
+# calls per release.
 mkdir -p "$work/history/readmes"
 jq -r '.[] | [.tag, .sha] | @tsv' "$work/releases.json" | while IFS=$'\t' read -r rtag rsha; do
   [[ $rtag =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || continue
   n=$(gh api "repos/cfgaudit/cfgaudit/git/trees/$rsha?recursive=1" --jq '[.tree[].path | select(test("^docs/rules/CFG[0-9]{3}\\.md$"))] | length')
-  gh api -H "Accept: application/vnd.github.raw" "repos/cfgaudit/cfgaudit/contents/README.md?ref=$rsha" > "$work/history/readmes/$rtag.md"
+  if ! gh api -H "Accept: application/vnd.github.raw" "repos/cfgaudit/cfgaudit/contents/docs/rules/README.md?ref=$rsha" > "$work/history/readmes/$rtag.md" 2> "$work/readme.err"; then
+    grep -q "404" "$work/readme.err" || { cat "$work/readme.err" >&2; exit 1; }
+    gh api -H "Accept: application/vnd.github.raw" "repos/cfgaudit/cfgaudit/contents/README.md?ref=$rsha" > "$work/history/readmes/$rtag.md"
+  fi
   jq -n --arg tag "$rtag" --argjson rules "$n" --slurpfile r "$work/releases.json" '$r[0][] | select(.tag == $tag) | {tag, date, url, rules: $rules}'
 done | jq -s . > "$work/history/history.json"
 
