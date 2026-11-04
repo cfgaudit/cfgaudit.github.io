@@ -165,6 +165,8 @@ tbody tr:hover { background: var(--surface); }
 .risk-id { background: var(--ink); color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.8rem; padding: 2px 8px; border-radius: 3px; }
 .risk-count { color: var(--muted); font-size: 0.9rem; }
 .risk p { margin: 8px 0; max-width: none; }
+.risk-why { color: var(--muted); font-size: 0.93rem; }
+.steps { margin: 8px 0; padding-left: 22px; font-size: 0.93rem; }
 .risk-rules { list-style: none; padding: 0; margin: 10px 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 4px 20px; font-size: 0.93rem; }
 .risk-rules a { color: var(--text); text-decoration: none; }
 .risk-rules a:hover .rid, .risk-rules a:hover { color: var(--link); }
@@ -189,7 +191,7 @@ pre.output { max-height: 520px; }
 .ansi-bold { font-weight: 700; }
 .ansi-red { color: #d1242f; }
 .ansi-yellow { color: #8f6000; } /* 4.8:1 on --code-bg (#28) */
-.ansi-cyan { color: #0a7ea4; }
+.ansi-cyan { color: #076a8a; } /* 5.4:1 on --code-bg */
 .terminal .ansi-red { color: #ff6b6b; }
 .terminal .ansi-yellow { color: #f5c542; }
 .terminal .ansi-cyan { color: #4fd1e8; }

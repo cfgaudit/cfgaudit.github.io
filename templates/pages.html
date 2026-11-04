@@ -62,6 +62,43 @@
 </main>
 {{template "foot" .}}{{end}}
 
+{{define "advisoryentry"}}
+    <li class="risk{{if eq .Coverage "none"}} risk-outside{{end}}" id="{{.Anchor}}">
+      <div class="risk-head">
+        <span class="risk-id">{{.Agent}}</span>
+        <h3>{{with .Link}}<a href="{{.}}">{{end}}{{.ID}}{{if .Link}}</a>{{end}}</h3>
+        <span class="risk-count">{{if eq .Coverage "full"}}detected{{else if eq .Coverage "partial"}}partly detected{{else}}not detected{{end}}{{with .Fixed}} · fixed in {{.}}{{end}}</span>
+      </div>
+      <p>{{.Summary}}</p>
+      {{with .Rules}}<ul class="risk-rules">
+        {{range .}}<li><a href="/rules/{{.Rule}}/"><span class="rid">{{.Rule}}</span> <span class="sev">{{.Severity}}</span></a></li>
+        {{end}}
+      </ul>{{end}}
+      {{if .Steps}}<ol class="steps">
+        {{range .Steps}}<li>{{.Step}}: {{if .Rules}}{{range $i, $r := .Rules}}{{if $i}}, {{end}}<a href="/rules/{{$r}}/">{{$r}}</a>{{end}}{{else}}{{.ReasonText}}{{end}}</li>
+        {{end}}
+      </ol>{{end}}
+      {{if or .Reason .Note}}<p class="risk-why">{{.ReasonText}}{{with .Note}} {{.}}{{end}}{{with .Issue}} <a href="https://github.com/cfgaudit/cfgaudit/issues/{{.}}">Issue #{{.}}</a>.{{end}}</p>{{end}}
+    </li>
+{{end}}
+
+{{define "advisories.html"}}{{template "head" .}}
+<main class="wrap doc">
+  <h1>Known attacks</h1>
+  <p>Which published attacks on coding agents depend on something a repository file can carry, and what cfgaudit reports for that file. cfgaudit detects the configuration an attack depends on, not the bug behind it. Most of these CVEs are agent bugs fixed in a release, so a finding means the file has the shape the attack used, not that a current agent is vulnerable.</p>
+  <p>{{.Advisories.Full}} are detected, {{.Advisories.Partial}} partly, and {{.Advisories.None}} are not, each with the reason. Every listed rule and severity is checked against a fixture in cfgaudit's tests. Bugs in servers and model behaviour are left out, because no configuration file shows them.</p>
+  <nav class="toc" aria-label="Sections"><a href="#detected">Detected</a><a href="#missing">Not detected</a><a href="#campaigns">Campaigns</a></nav>
+  <h2 id="detected">Detected</h2>
+  <ol class="risks">{{range .Advisories.Detected}}{{template "advisoryentry" .}}{{end}}</ol>
+  <h2 id="missing">Not detected</h2>
+  <ol class="risks">{{range .Advisories.Missing}}{{template "advisoryentry" .}}{{end}}</ol>
+  <h2 id="campaigns">Campaigns</h2>
+  <p>A campaign is a chain of steps, so this section says which step cfgaudit sees.</p>
+  <ol class="risks">{{range .Advisories.Campaigns}}{{template "advisoryentry" .}}{{end}}</ol>
+  <p class="source">From <a href="https://github.com/cfgaudit/cfgaudit/blob/main/docs/advisories.yml">docs/advisories.yml</a> of cfgaudit {{.Version}}.</p>
+</main>
+{{template "foot" .}}{{end}}
+
 {{define "reports.html"}}{{template "head" .}}
 <main class="wrap doc">
   <h1>Example reports</h1>

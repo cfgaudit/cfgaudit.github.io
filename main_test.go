@@ -362,3 +362,73 @@ func TestStyle_NavRulesScopedToHeader(t *testing.T) {
 		}
 	}
 }
+
+func TestBuild_AdvisoriesPage(t *testing.T) {
+	out := buildFixture(t)
+	page := read(t, filepath.Join(out, "advisories", "index.html"))
+	for _, want := range []string{
+		`<a href="https://www.cve.org/CVERecord?id=CVE-2026-0001">CVE-2026-0001</a>`,
+		`<a href="https://github.com/advisories/GHSA-aaaa-bbbb-cccc">GHSA-aaaa-bbbb-cccc</a>`,
+		`<a href="/rules/CFG001/"><span class="rid">CFG001</span> <span class="sev">error</span></a>`,
+		"fixed in 1.2.3",
+		"<p>1 are detected, 1 partly, and 1 are not, each with the reason.",
+		"A file scan cannot see this part",
+		`<a href="https://github.com/cfgaudit/cfgaudit/issues/7">Issue #7</a>`,
+		`id="some-campaign"`,
+		`Payload runs: <a href="/rules/CFG004/">CFG004</a>`,
+		"Package installs: A file scan cannot see this part",
+	} {
+		if !strings.Contains(page, want) {
+			t.Errorf("advisories page lacks %s", want)
+		}
+	}
+	if !strings.Contains(read(t, filepath.Join(out, "index.html")), `<a href="/advisories/">Attacks</a>`) {
+		t.Error("the menu does not link the page")
+	}
+}
+
+// A release from before docs/advisories.yml builds as before.
+func TestBuild_NoAdvisories(t *testing.T) {
+	src := filepath.Join(t.TempDir(), "src")
+	if err := os.CopyFS(src, os.DirFS("testdata/src")); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Remove(filepath.Join(src, "docs", "advisories.yml")); err != nil {
+		t.Fatal(err)
+	}
+	o := fixture(filepath.Join(t.TempDir(), "_site"))
+	o.Src = src
+	if err := build(o); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(filepath.Join(o.Out, "advisories", "index.html")); err == nil {
+		t.Error("page built without a list")
+	}
+	if strings.Contains(read(t, filepath.Join(o.Out, "index.html")), "/advisories/") {
+		t.Error("the menu links a page that does not exist")
+	}
+}
+
+func TestLoadAdvisories_Failures(t *testing.T) {
+	listed := map[string]ListedRule{"CFG001": {}}
+	for name, content := range map[string]string{
+		"broken":  "{",
+		"empty":   "[]\n",
+		"unknown": "- {id: CVE-2026-1, kind: cve, coverage: full, rules: [{rule: CFG999, severity: error}]}\n",
+	} {
+		src := t.TempDir()
+		path := filepath.Join(src, "docs", "advisories.yml")
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := loadAdvisories(src, listed); err == nil {
+			t.Errorf("%s: no error", name)
+		}
+	}
+	if _, err := loadAdvisories(os.DevNull, listed); err == nil {
+		t.Error("an unreadable source tree is not a missing list")
+	}
+}

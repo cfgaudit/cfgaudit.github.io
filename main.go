@@ -61,24 +61,26 @@ type Rule struct {
 
 // Page is what every template gets.
 type Page struct {
-	Title       string
-	Description string
-	Path        string // site path, "/" or "/rules/CFG001/"
-	Version     string
-	Sample      []template.HTML // lines of the home page example, with colour
-	Reports     []Report
-	Inputs      []SampleFile // the files the reports are for
-	Risks       []Risk       // OWASP LLM Top 10
-	MCPRisks    []Risk       // OWASP MCP Top 10
-	Covered     int          // LLM risks with at least one rule
-	Outside     int          // LLM risks a configuration file can't show
-	MCPCovered  int
-	Agents      []Agent // agent sections at the release tag
-	AgentsFile  string  // the file they are in: docs/rules/README.md or README.md
-	Rule        *Rule
-	RuleCount   int
-	Progress    *ProgressPage
-	HasProgress bool // the footer links the progress page
+	Title         string
+	Description   string
+	Path          string // site path, "/" or "/rules/CFG001/"
+	Version       string
+	Sample        []template.HTML // lines of the home page example, with colour
+	Reports       []Report
+	Inputs        []SampleFile // the files the reports are for
+	Risks         []Risk       // OWASP LLM Top 10
+	MCPRisks      []Risk       // OWASP MCP Top 10
+	Covered       int          // LLM risks with at least one rule
+	Outside       int          // LLM risks a configuration file can't show
+	MCPCovered    int
+	Agents        []Agent // agent sections at the release tag
+	AgentsFile    string  // the file they are in: docs/rules/README.md or README.md
+	Rule          *Rule
+	RuleCount     int
+	Progress      *ProgressPage
+	HasProgress   bool // the footer links the progress page
+	Advisories    *AdvisoryPage
+	HasAdvisories bool // the menu links the advisories page
 }
 
 func main() {
@@ -158,6 +160,10 @@ func build(o Options) error {
 	if err != nil {
 		return err
 	}
+	advisories, err := loadAdvisories(src, listed)
+	if err != nil {
+		return err
+	}
 	benchLines, err := loadBench(o.Bench)
 	if err != nil {
 		return err
@@ -177,7 +183,7 @@ func build(o Options) error {
 
 	var urls []string
 	write := func(p Page, name string) error {
-		p.Version, p.RuleCount, p.HasProgress = version, len(ids), progress != nil
+		p.Version, p.RuleCount, p.HasProgress, p.HasAdvisories = version, len(ids), progress != nil, advisories != nil
 		dir := out
 		if name != "404.html" {
 			dir = filepath.Join(out, filepath.FromSlash(strings.Trim(p.Path, "/")))
@@ -233,6 +239,17 @@ func build(o Options) error {
 		MCPCovered:  mcpCovered,
 	}, "owasp.html"); err != nil {
 		return err
+	}
+
+	if advisories != nil {
+		if err := write(Page{
+			Title:       "Known attacks · cfgaudit",
+			Description: "Which known CVEs and campaigns depend on a configuration cfgaudit detects, at which severity, and why the others are out of reach.",
+			Path:        "/advisories/",
+			Advisories:  advisories,
+		}, "advisories.html"); err != nil {
+			return err
+		}
 	}
 
 	if err := write(Page{

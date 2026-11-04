@@ -1,0 +1,41 @@
+- id: "CVE-2026-0001"
+  kind: cve
+  agent: "Claude Code"
+  fixed: "1.2.3"
+  summary: "A committed setting does something."
+  coverage: full
+  rules:
+    - {rule: CFG001, severity: error}
+
+- id: "CVE-2026-0002"
+  kind: cve
+  agent: "VS Code"
+  summary: "A file is written at run time."
+  coverage: partial
+  rules:
+    - {rule: CFG004, severity: warn}
+  reason: not-static
+  note: "The write is invisible to a scan."
+
+- id: "GHSA-aaaa-bbbb-cccc"
+  kind: cve
+  agent: "Zed"
+  summary: "A gap."
+  coverage: none
+  reason: no-rule-yet
+  issue: 7
+
+- id: "Some Campaign"
+  kind: campaign
+  agent: "npm"
+  summary: "A chain of steps."
+  coverage: partial
+  rules:
+    - {rule: CFG004, severity: warn}
+  reason: not-static
+  note: "The package is out of reach."
+  steps:
+    - step: "Package installs"
+      reason: not-static
+    - step: "Payload runs"
+      rules: [CFG004]
