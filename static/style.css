@@ -191,7 +191,7 @@ pre.output { max-height: 520px; }
 .ansi-bold { font-weight: 700; }
 .ansi-red { color: #d1242f; }
 .ansi-yellow { color: #8f6000; } /* 4.8:1 on --code-bg (#28) */
-.ansi-cyan { color: #0a7ea4; }
+.ansi-cyan { color: #076a8a; } /* 5.4:1 on --code-bg */
 .terminal .ansi-red { color: #ff6b6b; }
 .terminal .ansi-yellow { color: #f5c542; }
 .terminal .ansi-cyan { color: #4fd1e8; }
