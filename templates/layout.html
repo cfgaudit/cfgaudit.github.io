@@ -29,6 +29,7 @@ inside the page. frame-ancestors has no effect in a meta tag. */}}
     <nav aria-label="Main">
       <a href="/rules/"{{if eq .Path "/rules/"}} aria-current="page"{{end}}>Rules</a>
       <a href="/owasp/"{{if eq .Path "/owasp/"}} aria-current="page"{{end}}>OWASP</a>
+      {{if .HasAdvisories}}<a href="/advisories/"{{if eq .Path "/advisories/"}} aria-current="page"{{end}}>Attacks</a>{{end}}
       <a href="/reports/"{{if eq .Path "/reports/"}} aria-current="page"{{end}}>Reports</a>
       <a href="https://github.com/cfgaudit/cfgaudit">GitHub</a>
     </nav>

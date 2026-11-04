@@ -165,6 +165,8 @@ tbody tr:hover { background: var(--surface); }
 .risk-id { background: var(--ink); color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.8rem; padding: 2px 8px; border-radius: 3px; }
 .risk-count { color: var(--muted); font-size: 0.9rem; }
 .risk p { margin: 8px 0; max-width: none; }
+.risk-why { color: var(--muted); font-size: 0.93rem; }
+.steps { margin: 8px 0; padding-left: 22px; font-size: 0.93rem; }
 .risk-rules { list-style: none; padding: 0; margin: 10px 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 4px 20px; font-size: 0.93rem; }
 .risk-rules a { color: var(--text); text-decoration: none; }
 .risk-rules a:hover .rid, .risk-rules a:hover { color: var(--link); }
