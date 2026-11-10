@@ -27,7 +27,7 @@ for (const path of pages) {
     await page.goto(base + path, { waitUntil: "load" });
     await page.addScriptTag({ content: axeSource });
     const result = await page.evaluate(() =>
-      window.axe.run(document, { runOnly: ["wcag2a", "wcag2aa", "wcag21aa", "best-practice"] }),
+      window.axe.run(document, { runOnly: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa", "best-practice"] }),
     );
     if (result.violations.length === 0) {
       console.log(`${path} (${scheme}): no violations`);
