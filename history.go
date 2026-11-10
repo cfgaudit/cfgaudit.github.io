@@ -19,7 +19,7 @@ import (
 
 // The progress page (#21) shows how cfgaudit grows from release to release:
 // its rules, the agents it covers, how the rules spread over those agents,
-// and the benchmark history.
+// and the scan time of every release.
 
 // historyEntry is one release as scripts/build.sh records it in history.json:
 // the tag, when it was published, its release page, and the number of rule
@@ -54,7 +54,7 @@ type ProgressPage struct {
 	AgentsSVG  template.HTML
 	Bars       []AgentBar // empty until a release carries the agents field
 	BarsTotal  int        // rules in that release
-	Bench      *BenchPage // nil without benchmark data
+	Scans      *ScanPage  // nil without releases.jsonl
 	LatestTag  string
 	FirstDate  string
 	LatestDate string
@@ -224,12 +224,12 @@ func agentName(slug string) string {
 	return slug
 }
 
-func progressPage(hist []HistPoint, listed map[string]ListedRule, bench *BenchPage) *ProgressPage {
+func progressPage(hist []HistPoint, listed map[string]ListedRule, scans *ScanPage) *ProgressPage {
 	bars := agentBars(listed)
-	if len(hist) == 0 && bench == nil && len(bars) == 0 {
+	if len(hist) == 0 && scans == nil && len(bars) == 0 {
 		return nil
 	}
-	p := &ProgressPage{History: hist, Bars: bars, BarsTotal: len(listed), Bench: bench}
+	p := &ProgressPage{History: hist, Bars: bars, BarsTotal: len(listed), Scans: scans}
 	if len(hist) > 0 {
 		p.FirstDate, p.LatestDate, p.LatestTag = day(hist[0].Date), day(hist[len(hist)-1].Date), hist[len(hist)-1].Tag
 		p.RulesSVG = renderStepChart(hist, func(h HistPoint) int { return h.Rules }, "rule", "Rules per release")

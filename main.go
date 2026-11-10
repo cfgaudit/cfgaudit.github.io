@@ -88,12 +88,12 @@ func main() {
 	version := flag.String("version", "", "cfgaudit release the source tree is at, e.g. 1.18.1")
 	reports := flag.String("reports", "", "directory with cfgaudit's output on the sample, one <format>.txt per format, and the sample under input/")
 	rules := flag.String("rules", "", "output of cfgaudit list --format json from the same release")
-	bench := flag.String("bench", "", "bench.jsonl from cfgaudit's bench-data branch; without it the progress page has no performance section")
+	scans := flag.String("scans", "", "releases.jsonl from cfgaudit's bench-data branch; without it the progress page has no performance section")
 	history := flag.String("history", "", "directory with history.json and readmes/<tag>.md, one per release; without it the progress page has no release charts")
-	releases := flag.String("releases", "", "JSON list of cfgaudit releases (tag, sha, date, url) for the benchmark charts")
+	releases := flag.String("releases", "", "JSON list of cfgaudit releases (tag, sha, date, url) for the links of the scan time chart")
 	out := flag.String("out", "_site", "output directory")
 	flag.Parse()
-	if err := build(Options{Src: *src, Version: *version, Reports: *reports, Rules: *rules, Bench: *bench, Releases: *releases, History: *history, Out: *out}); err != nil {
+	if err := build(Options{Src: *src, Version: *version, Reports: *reports, Rules: *rules, Scans: *scans, Releases: *releases, History: *history, Out: *out}); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
 	}
@@ -102,7 +102,7 @@ func main() {
 // Options are the generator's inputs.
 type Options struct {
 	Src, Version, Reports, Rules, Out string
-	Bench, Releases, History          string // optional
+	Scans, Releases, History          string // optional
 }
 
 func build(o Options) error {
@@ -164,7 +164,7 @@ func build(o Options) error {
 	if err != nil {
 		return err
 	}
-	benchLines, err := loadBench(o.Bench)
+	scanRecords, err := loadScans(o.Scans)
 	if err != nil {
 		return err
 	}
@@ -176,7 +176,7 @@ func build(o Options) error {
 	if err != nil {
 		return err
 	}
-	progress := progressPage(hist, listed, benchPage(benchLines, releases))
+	progress := progressPage(hist, listed, scanPage(scanRecords, releases))
 	if err := os.RemoveAll(out); err != nil {
 		return err
 	}
