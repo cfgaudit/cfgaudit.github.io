@@ -176,7 +176,10 @@ func build(o Options) error {
 	if err != nil {
 		return err
 	}
-	progress := progressPage(hist, listed, scanPage(scanRecords, releases))
+	progress, err := progressPage(hist, listed, scanPage(scanRecords, releases))
+	if err != nil {
+		return err
+	}
 	if err := os.RemoveAll(out); err != nil {
 		return err
 	}

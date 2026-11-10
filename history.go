@@ -92,6 +92,13 @@ var agentSignals = []struct {
 	{"OpenHands", []string{`OpenHands`}, false},
 	{"Roo Code", []string{`Roo Code`}, true},
 	{"Kimi CLI", []string{`Kimi CLI`}, true},
+	// Added for cfgaudit v1.21.0 (#48). Antigravity CLI reads the shared
+	// .agents/ folder, so only its section heading counts. Junie has no
+	// section of its own yet; its .junie/ path counts once it has.
+	{"pi", []string{`\.pi/`}, false},
+	{"Kilo Code", []string{`\.kilo/`, `\.kilocode/`, `kilo\.jsonc`}, false},
+	{"Antigravity CLI", []string{`Antigravity CLI`}, true},
+	{"Junie", []string{`\.junie/`}, false},
 }
 
 var compiledSignals = func() [][]*regexp.Regexp {
@@ -177,16 +184,21 @@ func loadHistory(dir string) ([]HistPoint, error) {
 
 // agentBars counts the rules per agent from the latest release's rule list,
 // longest first. Rules carry no agents before cfgaudit#1036, and then the
-// chart is left out rather than guessed.
-func agentBars(listed map[string]ListedRule) []AgentBar {
+// chart is left out rather than guessed. An agent slug without a product
+// name in agentNames fails the build, so a new agent never shows as a slug
+// (#48).
+func agentBars(listed map[string]ListedRule) ([]AgentBar, error) {
 	count := map[string]int{}
 	for _, r := range listed {
 		for _, a := range r.Agents {
+			if agentNames[a] == "" {
+				return nil, fmt.Errorf("rule %s names the agent %q, which has no product name in agentNames (history.go)", r.ID, a)
+			}
 			count[a]++
 		}
 	}
 	if len(count) == 0 {
-		return nil
+		return nil, nil
 	}
 	var bars []AgentBar
 	top := 0
@@ -203,7 +215,7 @@ func agentBars(listed map[string]ListedRule) []AgentBar {
 	for i := range bars {
 		bars[i].Pct = math.Round(1000*float64(bars[i].Rules)/float64(top)) / 10
 	}
-	return bars
+	return bars, nil
 }
 
 // agentNames are the product names of cfgaudit's agent slugs
@@ -215,19 +227,19 @@ var agentNames = map[string]string{
 	"goose": "goose", "grok": "xAI Grok CLI", "kimi-cli": "Kimi CLI", "kimi-code": "Kimi Code",
 	"openhands": "OpenHands", "opencode": "OpenCode", "qwen-code": "qwen-code", "roo-code": "Roo Code",
 	"vscode": "VS Code", "zed": "Zed",
+	"antigravity": "Antigravity CLI", "claude-desktop": "Claude Desktop", "junie": "Junie",
+	"kilo-code": "Kilo Code", "pi": "pi",
 }
 
-func agentName(slug string) string {
-	if n := agentNames[slug]; n != "" {
-		return n
+func agentName(slug string) string { return agentNames[slug] }
+
+func progressPage(hist []HistPoint, listed map[string]ListedRule, scans *ScanPage) (*ProgressPage, error) {
+	bars, err := agentBars(listed)
+	if err != nil {
+		return nil, err
 	}
-	return slug
-}
-
-func progressPage(hist []HistPoint, listed map[string]ListedRule, scans *ScanPage) *ProgressPage {
-	bars := agentBars(listed)
 	if len(hist) == 0 && scans == nil && len(bars) == 0 {
-		return nil
+		return nil, nil
 	}
 	p := &ProgressPage{History: hist, Bars: bars, BarsTotal: len(listed), Scans: scans}
 	if len(hist) > 0 {
@@ -235,7 +247,7 @@ func progressPage(hist []HistPoint, listed map[string]ListedRule, scans *ScanPag
 		p.RulesSVG = renderStepChart(hist, func(h HistPoint) int { return h.Rules }, "rule", "Rules per release")
 		p.AgentsSVG = renderStepChart(hist, func(h HistPoint) int { return len(h.Agents) }, "agent", "Agents covered per release")
 	}
-	return p
+	return p, nil
 }
 
 // renderStepChart draws one count per release as a step line over time: the

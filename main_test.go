@@ -446,3 +446,37 @@ func TestLoadAdvisories_Failures(t *testing.T) {
 		t.Error("an unreadable source tree is not a missing list")
 	}
 }
+
+// #48: the agents cfgaudit v1.21.0 added count by their own path or, for
+// Antigravity CLI on the shared .agents/ folder, by a section heading only.
+func TestReadmeAgents_V121(t *testing.T) {
+	readme := "## What cfgaudit checks\n\n" +
+		"### pi — `.pi/`\n\nReads `.pi/settings.json`.\n\n" +
+		"### Kilo Code — `kilo.jsonc`, `.kilo/` & `.kilocode/`\n\n" +
+		"### Antigravity CLI — `.agents/`\n\n" +
+		"| [CFG131](CFG131.md) | warn | a Junie project config | LLM03 |\n" +
+		"The policy also covers Antigravity in passing.\n\n## OWASP mapping\n"
+	got := strings.Join(readmeAgents(readme), ",")
+	if want := "pi,Kilo Code,Antigravity CLI"; got != want {
+		t.Errorf("got %s, want %s", got, want)
+	}
+	if got := strings.Join(readmeAgents("## What cfgaudit checks\n\nThe agent once mentioned Antigravity CLI in passing.\n"), ","); got != "" {
+		t.Errorf("a passing mention counted: %s", got)
+	}
+}
+
+// #48: every agent slug in the rule list needs a product name, or the build
+// fails instead of showing the slug.
+func TestBuild_UnknownAgentSlugFails(t *testing.T) {
+	o := fixture(filepath.Join(t.TempDir(), "_site"))
+	o.Rules = withAgents(t, map[string][]string{"CFG001": {"claude-code", "new-agent"}})
+	err := build(o)
+	if err == nil || !strings.Contains(err.Error(), `"new-agent"`) {
+		t.Errorf("err = %v, want an error naming the slug", err)
+	}
+	for slug := range agentNames {
+		if agentNames[slug] == "" {
+			t.Errorf("%s has an empty name", slug)
+		}
+	}
+}
