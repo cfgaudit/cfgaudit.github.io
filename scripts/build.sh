@@ -56,12 +56,13 @@ jq -r '.[] | [.tag, .sha] | @tsv' "$work/releases.json" | while IFS=$'\t' read -
   jq -n --arg tag "$rtag" --argjson rules "$n" --slurpfile r "$work/releases.json" '$r[0][] | select(.tag == $tag) | {tag, date, url, rules: $rules}'
 done | jq -s . > "$work/history/history.json"
 
-# The benchmark history from the bench-data branch (cfgaudit/cfgaudit#1019).
-# Without the branch the progress page has no performance section.
-if ! gh api -H "Accept: application/vnd.github.raw" "repos/cfgaudit/cfgaudit/contents/bench.jsonl?ref=bench-data" > "$work/bench.jsonl" 2> "$work/bench.err"; then
-  grep -q "404" "$work/bench.err" || { cat "$work/bench.err" >&2; exit 1; }
-  echo "no bench-data branch yet; building without benchmark charts"
-  rm -f "$work/bench.jsonl"
+# The scan time of every release from the bench-data branch
+# (cfgaudit/cfgaudit#1619). Without the file the progress page has no
+# performance section.
+if ! gh api -H "Accept: application/vnd.github.raw" "repos/cfgaudit/cfgaudit/contents/releases.jsonl?ref=bench-data" > "$work/releases.jsonl" 2> "$work/scans.err"; then
+  grep -q "404" "$work/scans.err" || { cat "$work/scans.err" >&2; exit 1; }
+  echo "no releases.jsonl on bench-data yet; building without the scan time chart"
+  rm -f "$work/releases.jsonl"
 fi
 
-go run . -src "$work/cfgaudit" -version "${tag#v}" -reports "$work/reports" -rules "$work/rules.json" -bench "$work/bench.jsonl" -releases "$work/releases.json" -history "$work/history" -out _site
+go run . -src "$work/cfgaudit" -version "${tag#v}" -reports "$work/reports" -rules "$work/rules.json" -scans "$work/releases.jsonl" -releases "$work/releases.json" -history "$work/history" -out _site

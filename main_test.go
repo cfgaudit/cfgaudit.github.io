@@ -229,11 +229,12 @@ func TestGithubAnchor(t *testing.T) {
 	}
 }
 
-// #17, #21: the progress page charts the release history, the rules per
-// agent and bench.jsonl from cfgaudit's bench-data branch, without a script.
+// #21, #46: the progress page charts the release history, the rules per
+// agent and the scan time of each release from releases.jsonl, without a
+// script.
 func TestBuild_ProgressPage(t *testing.T) {
 	o := fixture(filepath.Join(t.TempDir(), "_site"))
-	o.Bench, o.Releases, o.History = "testdata/bench.jsonl", "testdata/releases.json", "testdata/history"
+	o.Scans, o.Releases, o.History = "testdata/releases.jsonl", "testdata/releases.json", "testdata/history"
 	o.Rules = withAgents(t, map[string][]string{"CFG001": {"claude-code"}, "CFG036": {"claude-code", "cursor"}})
 	if err := build(o); err != nil {
 		t.Fatal(err)
@@ -249,16 +250,22 @@ func TestBuild_ProgressPage(t *testing.T) {
 		// Rules per agent, longest bar first, from the agents field.
 		`<span class="bar-name">Claude Code</span><span class="bar"><span style="width: 100%"></span></span><span class="bar-value">2</span>`,
 		`<span class="bar-name">Cursor</span><span class="bar"><span style="width: 50%"></span></span><span class="bar-value">1</span>`,
-		// The benchmark section from #17.
+		// The scan time of the latest run only (200), oldest release first,
+		// each point linking to its release; a release without `list` has
+		// no rule count.
 		`<section id="performance">`,
-		`<section class="bench" id="b-scan-repo">`,
-		"Runner CPU changed to AMD EPYC 9V74 80-Core Processor",
+		`<a href="https://github.com/cfgaudit/cfgaudit/releases/tag/v1.0.0"><title>v1.0.0 · 2026-05-25 · 76.9 ms</title>`,
+		`<a href="https://github.com/cfgaudit/cfgaudit/releases/tag/v1.19.0"><title>v1.19.0 · 2026-10-20 · 618 ms · 116 rules</title>`,
+		`<title>v1.20.0 · 2026-10-30 · 356 ms · 123 rules</title>`,
+		`<tr><td><a href="https://github.com/cfgaudit/cfgaudit/releases/tag/v1.0.0">v1.0.0</a></td><td>2026-05-25</td><td>–</td><td>76.9</td></tr>`,
+		`<a href="https://github.com/cfgaudit/cfgaudit/actions/runs/200">Release scan time</a> workflow on AMD EPYC 7763 64-Core Processor with go1.26.10.`,
+		"3 times each after a warm-up scan",
 	} {
 		if !strings.Contains(page, want) {
 			t.Errorf("progress page lacks %s", want)
 		}
 	}
-	for _, bad := range []string{"<script", "Kimi CLI"} {
+	for _, bad := range []string{"<script", "Kimi CLI", "999", "Old CPU"} {
 		if strings.Contains(page, bad) {
 			t.Errorf("progress page contains %q", bad)
 		}
@@ -324,7 +331,7 @@ func TestReadmeAgents(t *testing.T) {
 // Without any data the site builds as before: no page and no link to it.
 func TestBuild_NoProgressData(t *testing.T) {
 	o := fixture(filepath.Join(t.TempDir(), "_site"))
-	o.Bench, o.History = filepath.Join(t.TempDir(), "missing.jsonl"), filepath.Join(t.TempDir(), "missing")
+	o.Scans, o.History = filepath.Join(t.TempDir(), "missing.jsonl"), filepath.Join(t.TempDir(), "missing")
 	if err := build(o); err != nil {
 		t.Fatal(err)
 	}
@@ -338,13 +345,20 @@ func TestBuild_NoProgressData(t *testing.T) {
 	}
 }
 
-func TestLoadBench_RejectsOtherVersions(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "bench.jsonl")
-	if err := os.WriteFile(path, []byte(`{"v":2,"sha":"`+strings.Repeat("a", 40)+`"}`+"\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := loadBench(path); err == nil || !strings.Contains(err.Error(), "format version 2") {
-		t.Errorf("err = %v, want a format version error", err)
+func TestLoadScans_RejectsOtherSchemas(t *testing.T) {
+	for _, c := range []struct{ line, want string }{
+		{`{"schema":2,"kind":"release","tag":"v1.0.0","median_ms":1}`, "schema 2"},
+		{`{"schema":1,"kind":"main","tag":"v1.0.0","median_ms":1}`, `kind "main"`},
+		{`{"schema":1,"kind":"release","tag":"v1.0.0","median_ms":0}`, "positive median_ms"},
+		{`{"schema":1,`, "unexpected end of JSON input"},
+	} {
+		path := filepath.Join(t.TempDir(), "releases.jsonl")
+		if err := os.WriteFile(path, []byte(c.line+"\n"), 0o600); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := loadScans(path); err == nil || !strings.Contains(err.Error(), c.want) {
+			t.Errorf("%s: err = %v, want %q", c.line, err, c.want)
+		}
 	}
 }
 

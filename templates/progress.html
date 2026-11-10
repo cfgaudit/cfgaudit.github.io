@@ -1,8 +1,8 @@
 {{define "progress.html"}}{{template "head" .}}
 <main class="wrap doc">
   <h1>Progress</h1>
-  <p>How cfgaudit grows from release to release: the rules it ships, the agents it covers, how the rules spread over those agents, and what a scan costs. Every point links to its release or commit.</p>
-  <nav class="toc" aria-label="Sections">{{if .Progress.History}}<a href="#rules">Rules</a><a href="#agents">Agents</a>{{end}}{{if .Progress.Bars}}<a href="#rules-per-agent">Rules per agent</a>{{end}}{{if .Progress.Bench}}<a href="#performance">Performance</a>{{end}}</nav>
+  <p>How cfgaudit grows from release to release: the rules it ships, the agents it covers, how the rules spread over those agents, and how long a scan takes. Every point links to its release.</p>
+  <nav class="toc" aria-label="Sections">{{if .Progress.History}}<a href="#rules">Rules</a><a href="#agents">Agents</a>{{end}}{{if .Progress.Bars}}<a href="#rules-per-agent">Rules per agent</a>{{end}}{{if .Progress.Scans}}<a href="#performance">Performance</a>{{end}}</nav>
 
   {{with .Progress}}{{if .History}}
   <section id="rules">
@@ -34,32 +34,23 @@
       {{end}}
     </ol>
   </section>
-  {{end}}{{with .Bench}}
+  {{end}}{{with .Scans}}
   <section id="performance">
     <h2>Performance</h2>
-    <p>Every push to cfgaudit's <code>main</code> runs the benchmarks and records the medians of ten runs: {{.Lines}} commit{{if ne .Lines 1}}s{{end}} from {{.First}} to {{.Last}}. The input is a corpus generated from a fixed seed (neutral project documentation, skills, rules files, settings and MCP configs), not files from real repositories.</p>
-    <p>Allocations and bytes do not depend on the machine, so they are shown as they are. Time does, and the hosted runners change hardware, so it is shown only as the ratio to the latest release measured in the same job: below 1.0 is faster. <span class="legend"><span class="key key-release"></span> release</span> <span class="legend"><span class="key key-cpu"></span> the runner CPU changed</span>. Hover a point for its value.</p>
-    <nav class="toc" aria-label="Benchmarks">{{range .Benchmarks}}<a href="#{{.ID}}">{{.Name}}</a>{{end}}</nav>
-    {{range .Benchmarks}}
-    <section class="bench" id="{{.ID}}">
-      <h3>{{.Name}}</h3>
-      <div class="charts">
-        {{range .Charts}}<figure><figcaption>{{.Title}}</figcaption>{{.SVG}}</figure>
+    <p>How long each release takes to scan the same project: a tree generated from a fixed seed, with instruction files, skills, commands, agents, rules files, settings and an MCP config ({{.Input}}), not files from real repositories. Every release was measured in one job, one after another and taking turns, {{.Runs}} times each after a warm-up scan; the chart shows the median.</p>
+    <p>The time follows what a release checks: a release with more rules and more agents reads more files and runs more checks on them. Speed-ups show as drops. All points come from the same runner, so they compare with each other; the next run, after the next release, measures them all again. Hover a point for its value.</p>
+    <figure><figcaption class="chart-caption">Scan time of each release, ms</figcaption>{{.SVG}}</figure>
+    <details>
+      <summary>Data</summary>
+      <table>
+        <thead><tr><th>Release</th><th>Date</th><th>Rules</th><th>Median, ms</th></tr></thead>
+        <tbody>
+        {{range .Rows}}<tr><td><a href="{{.URL}}">{{.Tag}}</a></td><td>{{.Date}}</td><td>{{.Rules}}</td><td>{{.MedianMS}}</td></tr>
         {{end}}
-      </div>
-      <details>
-        <summary>Data{{if eq (len .Rows) 30}} (latest 30 commits){{end}}</summary>
-        <table>
-          <thead><tr><th>Commit</th><th>Date</th>{{range .Units}}<th>{{.}}</th>{{end}}</tr></thead>
-          <tbody>
-          {{range .Rows}}<tr><td><a href="https://github.com/cfgaudit/cfgaudit/commit/{{.SHA}}"><code>{{.Short}}</code></a></td><td>{{.Date}}</td>{{range .Values}}<td>{{.}}</td>{{end}}</tr>
-          {{end}}
-          </tbody>
-        </table>
-      </details>
-    </section>
-    {{end}}
-    <p class="source">Data: <a href="https://github.com/cfgaudit/cfgaudit/blob/bench-data/bench.jsonl"><code>bench.jsonl</code></a> on the <code>bench-data</code> branch, written by the <a href="https://github.com/cfgaudit/cfgaudit/blob/main/.github/workflows/bench-history.yml">Benchmark history</a> workflow.</p>
+        </tbody>
+      </table>
+    </details>
+    <p class="source">Data: <a href="https://github.com/cfgaudit/cfgaudit/blob/bench-data/releases.jsonl"><code>releases.jsonl</code></a> on the <code>bench-data</code> branch, written by the <a href="https://github.com/cfgaudit/cfgaudit/actions/runs/{{.Run}}">Release scan time</a> workflow on {{.CPU}} with {{.Go}}.</p>
   </section>
   {{end}}{{end}}
 </main>
