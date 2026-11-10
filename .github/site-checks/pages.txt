@@ -3,5 +3,6 @@
 /rules/
 /rules/CFG001/
 /owasp/
+/advisories/
 /progress/
 /404.html
