@@ -1,5 +1,5 @@
 {{define "progress.html"}}{{template "head" .}}
-<main class="wrap doc">
+<main id="main" class="wrap doc">
   <h1>Progress</h1>
   <p>How cfgaudit grows from release to release: the rules it ships, the agents it covers, how the rules spread over those agents, and how long a scan takes. Every point links to its release.</p>
   <nav class="toc" aria-label="Sections">{{if .Progress.History}}<a href="#rules">Rules</a><a href="#agents">Agents</a>{{end}}{{if .Progress.Bars}}<a href="#rules-per-agent">Rules per agent</a>{{end}}{{if .Progress.Scans}}<a href="#performance">Performance</a>{{end}}</nav>

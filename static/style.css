@@ -228,3 +228,17 @@ pre.output { max-height: 520px; }
 .bar span { display: block; height: 100%; background: var(--series); border-radius: 0 4px 4px 0; }
 .bar-value { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 0.93rem; }
 @media (max-width: 480px) { .bars li { grid-template-columns: 8rem 1fr 2.5rem; } }
+
+/* Keyboard: a skip link past the header (WCAG 2.4.1) and a visible focus
+   indicator on every control (2.4.7), lighter on the dark header (#51). */
+.skip {
+  position: absolute; left: 8px; top: -48px; z-index: 100;
+  background: var(--ink); color: var(--on-ink); padding: 10px 16px;
+  border-radius: 4px; transition: top 0.1s;
+}
+.skip:focus { top: 8px; }
+a:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--link); outline-offset: 2px; border-radius: 2px;
+}
+.top a:focus-visible, .skip:focus-visible, .bottom a:focus-visible { outline-color: var(--on-ink); }
+@media (prefers-reduced-motion: reduce) { .skip { transition: none; } }

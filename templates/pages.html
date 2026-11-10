@@ -1,5 +1,5 @@
 {{define "overview.html"}}{{template "head" .}}
-<main class="wrap doc">
+<main id="main" class="wrap doc">
   <h1>Rules</h1>
   <p>All {{.RuleCount}} rules of cfgaudit {{.Version}}, grouped by their category in the <a href="/owasp/">OWASP Top 10 for LLM Applications 2026</a>. Severity <code>error</code> fails a scan, <code>warn</code> fails it only with <code>--strict</code>.</p>
   <nav class="toc" aria-label="Categories">{{range .Risks}}{{if .Rules}}<a href="#{{lower .ID}}">{{.ID}} {{.Name}}</a>{{end}}{{end}}</nav>
@@ -18,7 +18,7 @@
 {{template "foot" .}}{{end}}
 
 {{define "rule.html"}}{{template "head" .}}
-<main class="wrap doc">
+<main id="main" class="wrap doc">
   <p class="crumbs"><a href="/rules/">Rules</a> / {{.Rule.ID}}</p>
   <h1><span class="rule-id">{{.Rule.ID}}</span> {{.Rule.TitleHTML}}</h1>
   {{.Rule.Body}}
@@ -50,7 +50,7 @@
 {{end}}
 
 {{define "owasp.html"}}{{template "head" .}}
-<main class="wrap doc">
+<main id="main" class="wrap doc">
   <h1>OWASP Top 10 for LLM Applications and MCP</h1>
   <p>The <a href="https://genai.owasp.org/llm-top-10/">OWASP Top 10 for LLM Applications 2026</a> is cfgaudit's primary mapping: every rule belongs to one of its categories. cfgaudit's {{.RuleCount}} rules cover {{.Covered}} of the ten in the files that configure an agent.{{if .Outside}} The remaining {{.Outside}} are about training data, providers, model output and application code, which a configuration file doesn't contain.{{end}}</p>
   <h2 id="llm">OWASP Top 10 for LLM Applications</h2>
@@ -83,7 +83,7 @@
 {{end}}
 
 {{define "advisories.html"}}{{template "head" .}}
-<main class="wrap doc">
+<main id="main" class="wrap doc">
   <h1>Known attacks</h1>
   <p>Which published attacks on coding agents depend on something a repository file can carry, and what cfgaudit reports for that file. cfgaudit detects the configuration an attack depends on, not the bug behind it. Most of these CVEs are agent bugs fixed in a release, so a finding means the file has the shape the attack used, not that a current agent is vulnerable.</p>
   <p>{{.Advisories.Full}} are detected, {{.Advisories.Partial}} partly, and {{.Advisories.None}} are not, each with the reason. Every listed rule and severity is checked against a fixture in cfgaudit's tests. Bugs in servers and model behaviour are left out, because no configuration file shows them.</p>
@@ -100,7 +100,7 @@
 {{template "foot" .}}{{end}}
 
 {{define "reports.html"}}{{template "head" .}}
-<main class="wrap doc">
+<main id="main" class="wrap doc">
   <h1>Example reports</h1>
   <p>Everything below is real output of cfgaudit {{.Version}} for the same small repository, regenerated with every release. Its files:</p>
   {{range .Inputs}}<p class="file-name"><code>{{.Path}}</code></p>
@@ -122,7 +122,7 @@
 {{template "foot" .}}{{end}}
 
 {{define "404.html"}}{{template "head" .}}
-<main class="wrap doc">
+<main id="main" class="wrap doc">
   <h1>Page not found</h1>
   <p>Try the <a href="/rules/">rule list</a> or the <a href="/">home page</a>.</p>
 </main>
