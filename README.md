@@ -4,7 +4,7 @@ Source of <https://cfgaudit.github.io>, the website and rule reference for [cfga
 
 The rule pages are generated from `docs/rules/CFGxxx.md` in the cfgaudit repository, at the latest release tag, so the site always describes the version people can install. The rule overview and the OWASP page sort the rules from that release's `cfgaudit list --format json` into the OWASP Top 10 for LLM Applications 2026 and the OWASP MCP Top 10. The example on the home page and the example reports are the output of that release's binary on the small repository in [`sample/`](sample), in every format.
 
-The progress page charts how cfgaudit grows from release to release. The build fetches the rule count and the README of every release tag through the GitHub API (two calls per tag), counts the agents each README covers, takes the rules per agent from the latest release's `cfgaudit list --format json` (the `agents` field, cfgaudit#1036), and adds the benchmark history from `bench.jsonl` on the `bench-data` branch. The charts are inline SVG drawn at build time, one measure per chart, with no script. `/benchmarks/`, the page's old address, redirects to its performance section.
+The progress page charts how cfgaudit grows from release to release. The build fetches the rule count and the README of every release tag through the GitHub API (two calls per tag), counts the agents each README covers, takes the rules per agent from the latest release's `cfgaudit list --format json` (the `agents` field, cfgaudit#1036), and adds the scan time of each release from `releases.jsonl` on the `bench-data` branch (cfgaudit#1619), drawing only the latest measuring run. The charts are inline SVG drawn at build time, one measure per chart, with no script. `/benchmarks/`, the page's old address, redirects to its performance section.
 
 ## Building
 
@@ -36,6 +36,17 @@ CHROME_PATH=$(command -v google-chrome) node .github/site-checks/axe.mjs http://
 `.github/workflows/deploy.yml` publishes to GitHub Pages on every push to `main`, once a day, on `workflow_dispatch` and on a `cfgaudit-release` repository dispatch.
 
 To change rule text, edit the doc in [cfgaudit](https://github.com/cfgaudit/cfgaudit/tree/main/docs/rules). It appears here with the next release.
+
+## Contributing
+
+This repository holds the site generator, templates, styles and checks. Everything else is in [cfgaudit](https://github.com/cfgaudit/cfgaudit):
+
+- **Rule text** is edited in [`docs/rules/`](https://github.com/cfgaudit/cfgaudit/tree/main/docs/rules) there and appears here with the next release.
+- **The way of working** (an issue before a pull request, signed-off commits for the DCO, review) is in cfgaudit's [CONTRIBUTING.md](https://github.com/cfgaudit/cfgaudit/blob/main/CONTRIBUTING.md), and applies here too.
+- **An accessibility barrier on the site** has its own [issue template](https://github.com/cfgaudit/cfgaudit/issues/new?template=accessibility.yml). [ACCESSIBILITY.md](https://github.com/cfgaudit/cfgaudit/blob/main/ACCESSIBILITY.md) says what the site checks.
+- **A vulnerability**, in cfgaudit or in this site, goes through private reporting, see [SECURITY.md](https://github.com/cfgaudit/cfgaudit/blob/main/SECURITY.md).
+
+For a change to the site itself, open an issue here first. Run `go test ./...` and the checks above before the pull request.
 
 ## License
 
