@@ -151,7 +151,9 @@ tbody tr:hover { background: var(--surface); }
 .bottom a { color: var(--on-ink); }
 
 @media (max-width: 480px) {
-  .top nav { gap: 14px; font-size: 0.95rem; }
+  /* Five menu links do not fit beside the brand: wrap below it, inside the dark header (#44). */
+  .top-inner { height: auto; flex-wrap: wrap; row-gap: 6px; padding-top: 10px; padding-bottom: 8px; }
+  .top nav { width: 100%; flex-wrap: wrap; column-gap: 16px; row-gap: 4px; font-size: 0.95rem; }
   .brand { font-size: 1.2rem; }
 }
 
