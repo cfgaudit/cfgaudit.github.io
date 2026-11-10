@@ -328,6 +328,71 @@ func TestReadmeAgents(t *testing.T) {
 	}
 }
 
+// #48: New agents added in v1.21.0 are recognized by readmeAgents signals.
+func TestReadmeAgents_V121(t *testing.T) {
+	readme := `# cfgaudit
+
+## What cfgaudit checks
+
+### Junie
+Checks rules in .junie/ directory.
+
+### pi
+Checks .pi/ directory.
+
+### Kilo Code
+Checks kilo.jsonc and .kilo/ or .kilocode/ configs.
+
+### Antigravity CLI
+Configured via .agents/ settings.
+`
+	got := strings.Join(readmeAgents(readme), ",")
+	want := "Junie,pi,Kilo Code,Antigravity CLI"
+	if got != want {
+		t.Errorf("readmeAgents v1.21 = %q, want %q", got, want)
+	}
+
+	// Antigravity CLI matches only section headings, not inline mentions
+	bodyOnly := `# cfgaudit
+
+## What cfgaudit checks
+
+Mentions Antigravity CLI in passing text without a section heading.
+`
+	if gotBody := strings.Join(readmeAgents(bodyOnly), ","); strings.Contains(gotBody, "Antigravity CLI") {
+		t.Errorf("Antigravity CLI should not match inline mentions: %q", gotBody)
+	}
+}
+
+// #48: All slugs from v1.21.0 have product names in agentNames.
+func TestAgentNames_V121Slugs(t *testing.T) {
+	required := map[string]string{
+		"junie":          "Junie",
+		"antigravity":    "Antigravity CLI",
+		"pi":             "pi",
+		"kilo-code":      "Kilo Code",
+		"claude-desktop": "Claude Desktop",
+	}
+	for slug, want := range required {
+		if got := agentName(slug); got != want {
+			t.Errorf("agentName(%q) = %q, want %q", slug, got, want)
+		}
+	}
+}
+
+// #48: Every slug in cfgaudit list --format json must have a name,
+// failing the build otherwise.
+func TestLoadListed_RejectsUnknownAgentSlug(t *testing.T) {
+	jsonPath := filepath.Join(t.TempDir(), "rules.json")
+	content := `[{"id":"CFG001","owasp":"LLM03","agents":["unknown-agent-slug"]}]`
+	if err := os.WriteFile(jsonPath, []byte(content), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := loadListed(jsonPath, []string{"CFG001"}); err == nil || !strings.Contains(err.Error(), "unknown agent") {
+		t.Errorf("loadListed with unknown agent: want error mentioning unknown agent, got %v", err)
+	}
+}
+
 // Without any data the site builds as before: no page and no link to it.
 func TestBuild_NoProgressData(t *testing.T) {
 	o := fixture(filepath.Join(t.TempDir(), "_site"))

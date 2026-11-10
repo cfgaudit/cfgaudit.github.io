@@ -92,6 +92,10 @@ var agentSignals = []struct {
 	{"OpenHands", []string{`OpenHands`}, false},
 	{"Roo Code", []string{`Roo Code`}, true},
 	{"Kimi CLI", []string{`Kimi CLI`}, true},
+	{"Junie", []string{`\.junie/`}, false},
+	{"pi", []string{`\.pi/`}, false},
+	{"Kilo Code", []string{`\.kilo/`, `\.kilocode/`, `kilo\.jsonc`}, false},
+	{"Antigravity CLI", []string{`Antigravity CLI`}, true},
 }
 
 var compiledSignals = func() [][]*regexp.Regexp {
@@ -209,11 +213,12 @@ func agentBars(listed map[string]ListedRule) []AgentBar {
 // agentNames are the product names of cfgaudit's agent slugs
 // (knownAgents in cmd/cfgaudit/ruleagents.go). An unknown slug shows as is.
 var agentNames = map[string]string{
-	"amp": "Amp", "claude-code": "Claude Code", "cline": "Cline", "codex": "OpenAI Codex CLI",
-	"continue": "Continue", "copilot": "GitHub Copilot", "crush": "Crush", "cursor": "Cursor",
-	"devin": "Devin CLI", "devin-desktop": "Devin Desktop (formerly Windsurf)", "gemini-cli": "Gemini CLI",
-	"goose": "goose", "grok": "xAI Grok CLI", "kimi-cli": "Kimi CLI", "kimi-code": "Kimi Code",
-	"openhands": "OpenHands", "opencode": "OpenCode", "qwen-code": "qwen-code", "roo-code": "Roo Code",
+	"amp": "Amp", "antigravity": "Antigravity CLI", "claude-code": "Claude Code", "claude-desktop": "Claude Desktop",
+	"cline": "Cline", "codex": "OpenAI Codex CLI", "continue": "Continue", "copilot": "GitHub Copilot",
+	"crush": "Crush", "cursor": "Cursor", "devin": "Devin CLI", "devin-desktop": "Devin Desktop (formerly Windsurf)",
+	"gemini-cli": "Gemini CLI", "goose": "goose", "grok": "xAI Grok CLI", "junie": "Junie",
+	"kilo-code": "Kilo Code", "kimi-cli": "Kimi CLI", "kimi-code": "Kimi Code", "openhands": "OpenHands",
+	"opencode": "OpenCode", "pi": "pi", "qwen-code": "qwen-code", "roo-code": "Roo Code",
 	"vscode": "VS Code", "zed": "Zed",
 }
 

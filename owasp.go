@@ -107,6 +107,11 @@ func loadListed(path string, docIDs []string) (map[string]ListedRule, error) {
 		if r.OWASP == "" {
 			return nil, fmt.Errorf("%s: rule %s has no OWASP category", path, r.ID)
 		}
+		for _, a := range r.Agents {
+			if _, ok := agentNames[a]; !ok {
+				return nil, fmt.Errorf("%s: rule %s has unknown agent %q", path, r.ID, a)
+			}
+		}
 		byID[r.ID] = r
 	}
 	for _, id := range docIDs {
