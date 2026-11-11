@@ -263,6 +263,22 @@ func build(o Options) error {
 	}
 
 	if err := write(Page{
+		Title:       "Impressum · cfgaudit",
+		Description: "Legal notice and contact for cfgaudit.github.io under § 5 DDG.",
+		Path:        "/impressum/",
+	}, "impressum.html"); err != nil {
+		return err
+	}
+
+	if err := write(Page{
+		Title:       "Privacy · cfgaudit",
+		Description: "Privacy information for cfgaudit.github.io: a static site with no cookies, analytics or tracking, hosted on GitHub Pages.",
+		Path:        "/privacy/",
+	}, "privacy.html"); err != nil {
+		return err
+	}
+
+	if err := write(Page{
 		Title:       "OWASP Top 10 for LLM Applications and MCP · cfgaudit",
 		Description: fmt.Sprintf("How cfgaudit's %d rules map to the OWASP Top 10 for LLM Applications 2026 and the OWASP MCP Top 10, and which risks a configuration file can't show.", len(ids)),
 		Path:        "/owasp/",
