@@ -121,6 +121,16 @@
 </main>
 {{template "foot" .}}{{end}}
 
+{{define "accessibility.html"}}{{template "head" .}}
+<main id="main" class="wrap doc">
+  <h1>Accessibility</h1>
+  <p>This site works toward <a href="https://www.w3.org/TR/WCAG22/">WCAG 2.2 Level AA</a>. On each change every page must score 100 in Lighthouse's accessibility audit and pass axe, in both the light and the dark theme, and changes are reviewed by hand too, because an automated score can't tell whether a page is actually usable.</p>
+  <p>The site runs no JavaScript. It is semantic HTML with a skip link, visible keyboard focus, text that stays legible when you zoom, and wide tables and code blocks you can scroll with the keyboard.</p>
+  <p>cfgaudit the command-line tool has its own accessibility properties: severity is always a word, never colour alone, colour is optional and off in a pipe, and every finding is available in machine-readable formats for a screen reader or a script. The full statement, for the tool and this site, is <a href="https://github.com/cfgaudit/cfgaudit/blob/main/ACCESSIBILITY.md">ACCESSIBILITY.md</a> in the main repository.</p>
+  <p>If something here stops you from using cfgaudit, please <a href="https://github.com/cfgaudit/cfgaudit/issues/new?template=accessibility.yml">open an accessibility issue</a> and tell us what you were doing, which tool and assistive technology you used with versions, and what got in the way.</p>
+</main>
+{{template "foot" .}}{{end}}
+
 {{define "blog.html"}}{{template "head" .}}
 <main id="main" class="wrap doc">
   <h1>Blog</h1>
