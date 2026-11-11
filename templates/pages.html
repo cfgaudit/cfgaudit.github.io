@@ -121,6 +121,33 @@
 </main>
 {{template "foot" .}}{{end}}
 
+{{define "blog.html"}}{{template "head" .}}
+<main id="main" class="wrap doc">
+  <h1>Blog</h1>
+  <p>Short, practical notes on AI-agent configuration security: real incidents, what cfgaudit reports, and how to catch a problem before it ships.</p>
+  <ul class="posts">
+  {{range .Posts}}<li>
+    <h2><a href="{{.Path}}">{{.Title}}</a></h2>
+    <p class="post-meta"><time datetime="{{.Date}}">{{.DateDisplay}}</time></p>
+    <p>{{.Summary}}</p>
+  </li>
+  {{end}}
+  </ul>
+</main>
+{{template "foot" .}}{{end}}
+
+{{define "post.html"}}{{template "head" .}}
+<main id="main" class="wrap doc">
+  <p class="crumbs"><a href="/blog/">Blog</a></p>
+  <article>
+    <h1>{{.Post.Title}}</h1>
+    <p class="post-meta"><time datetime="{{.Post.Date}}">{{.Post.DateDisplay}}</time></p>
+    {{.Post.Body}}
+  </article>
+  <p class="source"><a href="/rules/">Browse the rules</a> · <a href="https://github.com/cfgaudit/cfgaudit">cfgaudit on GitHub</a></p>
+</main>
+{{template "foot" .}}{{end}}
+
 {{define "404.html"}}{{template "head" .}}
 <main id="main" class="wrap doc">
   <h1>Page not found</h1>

@@ -65,4 +65,4 @@ if ! gh api -H "Accept: application/vnd.github.raw" "repos/cfgaudit/cfgaudit/con
   rm -f "$work/releases.jsonl"
 fi
 
-go run . -src "$work/cfgaudit" -version "${tag#v}" -reports "$work/reports" -rules "$work/rules.json" -scans "$work/releases.jsonl" -releases "$work/releases.json" -history "$work/history" -out _site
+go run . -src "$work/cfgaudit" -version "${tag#v}" -reports "$work/reports" -rules "$work/rules.json" -posts posts -scans "$work/releases.jsonl" -releases "$work/releases.json" -history "$work/history" -out _site
