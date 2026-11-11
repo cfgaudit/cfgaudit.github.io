@@ -22,6 +22,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
@@ -80,7 +81,23 @@ type Page struct {
 	Progress      *ProgressPage
 	HasProgress   bool // the footer links the progress page
 	Advisories    *AdvisoryPage
-	HasAdvisories bool // the menu links the advisories page
+	HasAdvisories bool   // the menu links the advisories page
+	Posts         []Post // the blog index lists these
+	Post          *Post  // the one post a post page shows
+	HasBlog       bool   // the menu links the blog
+}
+
+// Post is one blog post, loaded from a Markdown file whose "---"-delimited
+// front matter carries its title, description, date, slug and summary.
+type Post struct {
+	Title       string
+	Description string
+	Slug        string
+	Date        string // ISO 8601, YYYY-MM-DD
+	DateDisplay string // "January 2, 2006"
+	Summary     string
+	Path        string // /blog/<slug>/
+	Body        template.HTML
 }
 
 func main() {
@@ -88,12 +105,13 @@ func main() {
 	version := flag.String("version", "", "cfgaudit release the source tree is at, e.g. 1.18.1")
 	reports := flag.String("reports", "", "directory with cfgaudit's output on the sample, one <format>.txt per format, and the sample under input/")
 	rules := flag.String("rules", "", "output of cfgaudit list --format json from the same release")
+	posts := flag.String("posts", "posts", "directory with blog posts, one Markdown file with front matter per post; empty or absent builds no blog")
 	scans := flag.String("scans", "", "releases.jsonl from cfgaudit's bench-data branch; without it the progress page has no performance section")
 	history := flag.String("history", "", "directory with history.json and readmes/<tag>.md, one per release; without it the progress page has no release charts")
 	releases := flag.String("releases", "", "JSON list of cfgaudit releases (tag, sha, date, url) for the links of the scan time chart")
 	out := flag.String("out", "_site", "output directory")
 	flag.Parse()
-	if err := build(Options{Src: *src, Version: *version, Reports: *reports, Rules: *rules, Scans: *scans, Releases: *releases, History: *history, Out: *out}); err != nil {
+	if err := build(Options{Src: *src, Version: *version, Reports: *reports, Rules: *rules, Posts: *posts, Scans: *scans, Releases: *releases, History: *history, Out: *out}); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
 	}
@@ -102,6 +120,7 @@ func main() {
 // Options are the generator's inputs.
 type Options struct {
 	Src, Version, Reports, Rules, Out string
+	Posts                             string // directory of blog posts; empty builds no blog
 	Scans, Releases, History          string // optional
 }
 
@@ -180,13 +199,17 @@ func build(o Options) error {
 	if err != nil {
 		return err
 	}
+	posts, err := loadPosts(o.Posts)
+	if err != nil {
+		return err
+	}
 	if err := os.RemoveAll(out); err != nil {
 		return err
 	}
 
 	var urls []string
 	write := func(p Page, name string) error {
-		p.Version, p.RuleCount, p.HasProgress, p.HasAdvisories = version, len(ids), progress != nil, advisories != nil
+		p.Version, p.RuleCount, p.HasProgress, p.HasAdvisories, p.HasBlog = version, len(ids), progress != nil, advisories != nil, len(posts) > 0
 		dir := out
 		if name != "404.html" {
 			dir = filepath.Join(out, filepath.FromSlash(strings.Trim(p.Path, "/")))
@@ -228,6 +251,22 @@ func build(o Options) error {
 		Reports:     reports,
 		Inputs:      inputs,
 	}, "reports.html"); err != nil {
+		return err
+	}
+
+	if err := write(Page{
+		Title:       "Accessibility · cfgaudit",
+		Description: "How cfgaudit.github.io works toward WCAG 2.2 AA, how it is tested, and how to report an accessibility barrier.",
+		Path:        "/accessibility/",
+	}, "accessibility.html"); err != nil {
+		return err
+	}
+
+	if err := write(Page{
+		Title:       "Privacy · cfgaudit",
+		Description: "Privacy information for cfgaudit.github.io: a static site with no cookies, analytics or tracking, hosted on GitHub Pages.",
+		Path:        "/privacy/",
+	}, "privacy.html"); err != nil {
 		return err
 	}
 
@@ -308,6 +347,28 @@ func build(o Options) error {
 		// redirects, so the old URL keeps a page that sends readers on.
 		if err := writeRedirect(out, "/benchmarks/", "/progress/#performance"); err != nil {
 			return err
+		}
+	}
+
+	if len(posts) > 0 {
+		if err := write(Page{
+			Title:       "Blog · cfgaudit",
+			Description: "Short, practical notes on AI-agent configuration security: real incidents, what cfgaudit reports, and how to catch a problem before it ships.",
+			Path:        "/blog/",
+			Posts:       posts,
+		}, "blog.html"); err != nil {
+			return err
+		}
+		for i := range posts {
+			post := posts[i]
+			if err := write(Page{
+				Title:       post.Title + " · cfgaudit",
+				Description: post.Description,
+				Path:        post.Path,
+				Post:        &post,
+			}, "post.html"); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -529,4 +590,122 @@ func writeSitemap(out string, urls []string) error {
 	}
 	robots := "User-agent: *\nAllow: /\nSitemap: " + siteURL + "/sitemap.xml\n"
 	return os.WriteFile(filepath.Join(out, "robots.txt"), []byte(robots), 0o644)
+}
+
+// loadPosts reads the blog posts from dir, newest first. An empty dir, or one
+// that does not exist, means no blog.
+func loadPosts(dir string) ([]Post, error) {
+	if dir == "" {
+		return nil, nil
+	}
+	entries, err := os.ReadDir(dir)
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	var posts []Post
+	for _, e := range entries {
+		if e.IsDir() || !strings.HasSuffix(e.Name(), ".md") {
+			continue
+		}
+		raw, err := os.ReadFile(filepath.Join(dir, e.Name())) //nolint:gosec // reads the site's own posts directory
+		if err != nil {
+			return nil, err
+		}
+		meta, body, err := frontMatter(raw)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", e.Name(), err)
+		}
+		for _, k := range []string{"title", "description", "date", "summary"} {
+			if meta[k] == "" {
+				return nil, fmt.Errorf("%s: front matter has no %s", e.Name(), k)
+			}
+		}
+		day, err := time.Parse("2006-01-02", meta["date"])
+		if err != nil {
+			return nil, fmt.Errorf("%s: date %q is not YYYY-MM-DD", e.Name(), meta["date"])
+		}
+		htmlBody, err := convertPost(body)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", e.Name(), err)
+		}
+		slug := meta["slug"]
+		if slug == "" {
+			slug = strings.TrimSuffix(e.Name(), ".md")
+		}
+		posts = append(posts, Post{
+			Title:       meta["title"],
+			Description: meta["description"],
+			Slug:        slug,
+			Date:        meta["date"],
+			DateDisplay: day.Format("January 2, 2006"),
+			Summary:     meta["summary"],
+			Path:        "/blog/" + slug + "/",
+			Body:        htmlBody,
+		})
+	}
+	sort.Slice(posts, func(i, j int) bool {
+		if posts[i].Date != posts[j].Date {
+			return posts[i].Date > posts[j].Date // newest first
+		}
+		return posts[i].Slug < posts[j].Slug
+	})
+	return posts, nil
+}
+
+// frontMatter splits a post into its "---"-delimited "key: value" header and
+// the Markdown body that follows it.
+func frontMatter(raw []byte) (map[string]string, []byte, error) {
+	s := string(raw)
+	const open = "---\n"
+	if !strings.HasPrefix(s, open) {
+		return nil, nil, errors.New("missing front matter")
+	}
+	rest := s[len(open):]
+	end := strings.Index(rest, "\n---\n")
+	if end < 0 {
+		return nil, nil, errors.New("unterminated front matter")
+	}
+	meta := map[string]string{}
+	for _, line := range strings.Split(rest[:end], "\n") {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		k, v, ok := strings.Cut(line, ":")
+		if !ok {
+			return nil, nil, fmt.Errorf("front matter line without ':': %q", line)
+		}
+		meta[strings.TrimSpace(k)] = unquote(strings.TrimSpace(v))
+	}
+	return meta, []byte(rest[end+len("\n---\n"):]), nil
+}
+
+// unquote drops one layer of surrounding double quotes, so a value with a
+// colon or a leading space keeps it, and unescapes \" and \\ inside.
+func unquote(s string) string {
+	if len(s) >= 2 && s[0] == '"' && s[len(s)-1] == '"' {
+		inner := s[1 : len(s)-1]
+		inner = strings.ReplaceAll(inner, `\"`, `"`)
+		inner = strings.ReplaceAll(inner, `\\`, `\`)
+		return inner
+	}
+	return s
+}
+
+// convertPost renders a blog post's Markdown. Unlike convert, it keeps links
+// as written, so a post links to a rule page (/rules/CFG007/) or an external
+// page directly. Raw HTML stays off, as in the rule docs.
+func convertPost(raw []byte) (template.HTML, error) {
+	md := goldmark.New(
+		goldmark.WithExtensions(extension.GFM),
+		goldmark.WithParserOptions(parser.WithAutoHeadingID()),
+	)
+	var buf bytes.Buffer
+	if err := md.Convert(raw, &buf); err != nil {
+		return "", err
+	}
+	out := strings.ReplaceAll(buf.String(), "<pre>", `<pre tabindex="0">`)
+	return template.HTML(out), nil //nolint:gosec // goldmark output with raw HTML disabled
 }

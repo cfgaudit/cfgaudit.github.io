@@ -32,6 +32,7 @@ inside the page. frame-ancestors has no effect in a meta tag. */}}
       <a href="/owasp/"{{if eq .Path "/owasp/"}} aria-current="page"{{end}}>OWASP</a>
       {{if .HasAdvisories}}<a href="/advisories/"{{if eq .Path "/advisories/"}} aria-current="page"{{end}}>Attacks</a>{{end}}
       <a href="/reports/"{{if eq .Path "/reports/"}} aria-current="page"{{end}}>Reports</a>
+      {{if .HasBlog}}<a href="/blog/"{{if eq .Path "/blog/"}} aria-current="page"{{end}}>Blog</a>{{end}}
       <a href="https://github.com/cfgaudit/cfgaudit">GitHub</a>
     </nav>
   </div>
@@ -41,7 +42,7 @@ inside the page. frame-ancestors has no effect in a meta tag. */}}
 {{define "foot"}}
 <footer class="bottom">
   <div class="wrap">
-    <p>cfgaudit {{.Version}} · {{.RuleCount}} rules · <a href="https://github.com/cfgaudit/cfgaudit/blob/main/LICENSE">Apache-2.0</a> · <a href="https://github.com/cfgaudit/cfgaudit/blob/main/SECURITY.md">Security policy</a> · {{if .HasProgress}}<a href="/progress/">Progress</a> · {{end}}<a href="https://github.com/cfgaudit/cfgaudit.github.io">Site source</a></p>
+    <p>cfgaudit {{.Version}} · {{.RuleCount}} rules · <a href="https://github.com/cfgaudit/cfgaudit/blob/main/LICENSE">Apache-2.0</a> · <a href="https://github.com/cfgaudit/cfgaudit/blob/main/SECURITY.md">Security policy</a> · {{if .HasProgress}}<a href="/progress/">Progress</a> · {{end}}<a href="/accessibility/">Accessibility</a> · <a href="/privacy/">Privacy</a> · <a href="https://github.com/cfgaudit/cfgaudit.github.io">Site source</a></p>
   </div>
 </footer>
 </body>
