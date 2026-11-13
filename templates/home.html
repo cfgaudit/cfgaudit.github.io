@@ -59,10 +59,11 @@
       <div class="card">
         <h3>Package managers</h3>
 <pre tabindex="0"><code>brew install cfgaudit/tap/cfgaudit
+aqua g -i cfgaudit/cfgaudit &amp;&amp; aqua i
 pipx install cfgaudit
 npx cfgaudit@{{.Version}} .
 go install github.com/cfgaudit/cfgaudit/cmd/cfgaudit@v{{.Version}}</code></pre>
-        <p>Homebrew, <a href="https://pypi.org/project/cfgaudit/">PyPI</a> (also <code>uvx cfgaudit</code>), <a href="https://www.npmjs.com/package/cfgaudit">npm</a> (pin it in <code>devDependencies</code> with <code>npm install --save-dev --save-exact cfgaudit@{{.Version}}</code>) and the Go toolchain. The PyPI wheels and the npm packages carry the release binary after its checksum and provenance check, with attestations from the release workflow.</p>
+        <p>Homebrew, <a href="https://aquaproj.github.io/">aqua</a>, <a href="https://pypi.org/project/cfgaudit/">PyPI</a> (also <code>uvx cfgaudit</code>), <a href="https://www.npmjs.com/package/cfgaudit">npm</a> (pin it in <code>devDependencies</code> with <code>npm install --save-dev --save-exact cfgaudit@{{.Version}}</code>) and the Go toolchain. aqua checks each download against <code>checksums.txt</code> and the release workflow's attestation. The PyPI wheels and the npm packages carry the release binary after its checksum and provenance check, with attestations from the release workflow.</p>
       </div>
       <div class="card">
         <h3>Docker</h3>
