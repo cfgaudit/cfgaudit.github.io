@@ -89,6 +89,8 @@ func TestBuild_HomeOverviewOWASP(t *testing.T) {
 		"npx cfgaudit@1.18.1 .",
 		"npm install --save-dev --save-exact cfgaudit@1.18.1",
 		`<a href="https://www.npmjs.com/package/cfgaudit">npm</a>`,
+		"aqua g -i cfgaudit/cfgaudit &amp;&amp; aqua i",
+		`<a href="https://aquaproj.github.io/">aqua</a>`,
 	} {
 		if !strings.Contains(home, want) {
 			t.Errorf("home lacks %s", want)
